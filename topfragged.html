@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TOPFRAGGED.COM — Twitch Streamer Valorant Leaderboards</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body,#root{min-height:100vh;}
+    body{background:#0b0b12;}
+    .vr{min-height:100vh;background:#0b0b12;color:#d8d8e8;font-family:'Rajdhani',sans-serif;}
+    .vr-header{display:flex;align-items:center;gap:16px;padding:12px 28px;border-bottom:1px solid #1e1e2c;background:#0e0e18;flex-wrap:wrap;}
+    .vr-brand{display:flex;align-items:center;gap:10px;}
+    .vr-brand-text{line-height:1.15;}
+    .vr-brand-name{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:22px;letter-spacing:.08em;color:#fff;}
+    .vr-brand-name span{color:#ff4655;}
+    .vr-brand-sub{font-size:9px;letter-spacing:.16em;color:#444;font-family:'JetBrains Mono',monospace;}
+    .vr-brand-sub .tw{color:#9147ff;}
+    .vr-brand-sub .vl{color:#ff4655;}
+    .vr-spacer{flex:1;}
+    .vr-search-wrap{position:relative;}
+    .vr-search{background:#15151e;border:1px solid #252532;color:#d8d8e8;padding:8px 14px 8px 36px;font-family:'JetBrains Mono',monospace;font-size:12px;width:210px;outline:none;transition:border-color .15s;}
+    .vr-search:focus{border-color:#9147ff;}
+    .vr-search::placeholder{color:#3a3a4a;}
+    .vr-search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#3a3a4a;font-size:15px;pointer-events:none;}
+    .btn-twitch{background:#9147ff;color:#fff;border:none;padding:10px 20px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;letter-spacing:.06em;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .15s,transform .1s;white-space:nowrap;}
+    .btn-twitch:hover{background:#a970ff;}
+    .btn-twitch:active{transform:scale(.97);}
+    .btn-twitch:disabled{opacity:.6;cursor:not-allowed;}
+    .btn-red{background:#ff4655;color:#fff;border:none;padding:10px 18px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;letter-spacing:.08em;cursor:pointer;transition:background .15s,transform .1s;}
+    .btn-red:hover{background:#ff6272;}
+    .btn-red:active{transform:scale(.97);}
+    .btn-red:disabled{opacity:.6;cursor:not-allowed;}
+    .btn-ghost{background:transparent;border:1px solid #252535;color:#666;padding:9px 16px;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:13px;letter-spacing:.06em;cursor:pointer;transition:border-color .15s,color .15s;}
+    .btn-ghost:hover{border-color:#9147ff;color:#9147ff;}
+    .btn-icon{background:transparent;border:1px solid #252535;color:#555;padding:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s;}
+    .btn-icon:hover{border-color:#9147ff;color:#9147ff;}
+    .vr-stats-bar{display:flex;align-items:center;gap:16px;padding:7px 28px;background:#0e0e16;border-bottom:1px solid #181824;flex-wrap:wrap;}
+    .vr-stat{font-size:11px;font-family:'JetBrains Mono',monospace;color:#444;}
+    .vr-stat span{color:#ff4655;}
+    .region-tabs{display:flex;align-items:stretch;border-bottom:1px solid #1a1a26;background:#0d0d1a;padding:0 28px;gap:2px;overflow-x:auto;}
+    .region-tab{padding:10px 18px;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:13px;letter-spacing:.06em;color:#444;cursor:pointer;border:none;background:transparent;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap;}
+    .region-tab:hover{color:#d8d8e8;}
+    .region-tab.active{color:#ff4655;border-bottom-color:#ff4655;}
+    .region-tab .count{font-family:'JetBrains Mono',monospace;font-size:10px;color:#3a3a4a;margin-left:5px;}
+    .region-tab.active .count{color:#ff4655;}
+    .vr-table-head{display:grid;grid-template-columns:48px 1fr 180px 120px 70px 80px;gap:12px;padding:10px 28px;border-bottom:1px solid #1e1e2c;}
+    .vr-th{font-size:10px;font-weight:600;letter-spacing:.12em;color:#3a3a4a;font-family:'JetBrains Mono',monospace;}
+    .vr-rows{padding:0 28px;}
+    .vr-row{display:grid;grid-template-columns:48px 1fr 180px 120px 70px 80px;gap:12px;padding:12px 0;border-bottom:1px solid #13131e;align-items:center;transition:background .1s;}
+    .vr-row:hover{background:rgba(145,71,255,.04);margin:0 -28px;padding:12px 28px;}
+    .vr-pos{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:500;color:#ff4655;text-align:center;}
+    .vr-pos.top{font-size:15px;font-weight:700;}
+    .vr-streamer{display:flex;align-items:center;gap:10px;}
+    .vr-avatar{width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid #2a2a3a;flex-shrink:0;}
+    .vr-avatar-ph{width:34px;height:34px;border-radius:50%;background:#1a1020;border:1px solid #2a2a3a;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;color:#9147ff;font-weight:700;font-family:'JetBrains Mono',monospace;}
+    .vr-twitch-link{color:#9147ff;text-decoration:none;font-weight:700;font-size:15px;letter-spacing:.02em;transition:color .1s;display:block;}
+    .vr-twitch-link:hover{color:#b07dff;}
+    .vr-riot-link{font-family:'JetBrains Mono',monospace;font-size:11px;color:#3a3a4a;margin-top:2px;text-decoration:none;transition:color .1s;}
+    .vr-riot-link:hover{color:#666;}
+    .vr-badge{display:inline-flex;align-items:center;padding:3px 10px 3px 8px;font-weight:700;font-size:12px;letter-spacing:.05em;border:1px solid;font-family:'Rajdhani',sans-serif;gap:6px;}
+    .vr-dot{width:6px;height:6px;border-radius:50%;}
+    .vr-elo-col{display:flex;flex-direction:column;gap:3px;}
+    .vr-elo-val{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;}
+    .vr-rr-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:#555;}
+    .vr-rr-track{height:3px;background:#1e1e2c;overflow:hidden;width:80px;}
+    .vr-rr-fill{height:100%;}
+    .vr-region{font-family:'JetBrains Mono',monospace;font-size:11px;color:#555;text-transform:uppercase;}
+    .vr-time{font-family:'JetBrains Mono',monospace;font-size:10px;color:#3a3a4a;margin-top:2px;}
+    .vr-actions{display:flex;gap:4px;justify-content:flex-end;}
+    .vr-icon-btn{background:transparent;border:none;color:#3a3a4a;cursor:pointer;padding:5px;font-size:15px;line-height:1;transition:color .15s;}
+    .vr-icon-btn:hover{color:#ff4655;}
+    .vr-empty{text-align:center;padding:72px 20px;}
+    .vr-empty-title{font-size:22px;font-weight:700;letter-spacing:.04em;color:#ccc;margin-bottom:8px;}
+    .vr-empty-sub{font-size:12px;color:#444;margin-bottom:26px;font-family:'JetBrains Mono',monospace;line-height:1.6;}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;z-index:200;}
+    .modal{background:#12121c;border:1px solid #252535;width:420px;max-width:94vw;max-height:90vh;overflow-y:auto;}
+    .modal-head{padding:22px 24px 0;display:flex;align-items:center;gap:10px;}
+    .modal-bar{width:3px;height:20px;flex-shrink:0;}
+    .modal-title{font-size:18px;font-weight:700;letter-spacing:.06em;color:#fff;}
+    .modal-body{padding:20px 24px 24px;}
+    .vr-field{margin-bottom:14px;}
+    .vr-label{font-size:10px;font-weight:600;letter-spacing:.14em;color:#444;font-family:'JetBrains Mono',monospace;display:block;margin-bottom:5px;}
+    .vr-input{background:#0e0e18;border:1px solid #252535;color:#d8d8e8;padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;width:100%;transition:border-color .15s;}
+    .vr-input:focus{border-color:#9147ff;}
+    .vr-input::placeholder{color:#2a2a3a;}
+    .vr-input.locked{border-color:#9147ff;background:#0e0918;color:#b07dff;cursor:default;}
+    .vr-select{background:#0e0e18;border:1px solid #252535;color:#d8d8e8;padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;width:100%;cursor:pointer;}
+    .vr-field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .err-box{font-family:'JetBrains Mono',monospace;font-size:11px;color:#ff4655;padding:9px 12px;background:rgba(255,70,85,.08);border:1px solid rgba(255,70,85,.2);margin-bottom:12px;line-height:1.5;}
+    .ok-box{font-family:'JetBrains Mono',monospace;font-size:11px;color:#40df90;padding:9px 12px;background:rgba(64,223,144,.06);border:1px solid rgba(64,223,144,.2);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+    .tw-who{display:flex;align-items:center;gap:10px;background:#0e0918;border:1px solid #3a2a5a;padding:10px 14px;margin-bottom:16px;}
+    .tw-who img{width:36px;height:36px;border-radius:50%;}
+    .tw-who-name{font-size:14px;font-weight:700;color:#d8d8e8;}
+    .tw-who-sub{font-size:10px;color:#9147ff;font-family:'JetBrains Mono',monospace;margin-top:1px;}
+    .tw-who-x{margin-left:auto;background:transparent;border:none;color:#444;cursor:pointer;font-size:16px;padding:2px 6px;transition:color .1s;}
+    .tw-who-x:hover{color:#ff4655;}
+    .modal-actions{display:flex;gap:10px;margin-top:16px;}
+    .vr-footer{padding:12px 28px;border-top:1px solid #13131e;margin-top:6px;}
+    .vr-footer-note{font-family:'JetBrains Mono',monospace;font-size:10px;color:#282832;}
+    .vr-confirm{background:#1a0e10;border:1px solid #3a1820;padding:10px 14px;margin-top:4px;display:flex;align-items:center;gap:10px;}
+    .vr-confirm-text{font-size:12px;color:#cc6070;font-family:'JetBrains Mono',monospace;flex:1;}
+    .btn-del{background:#cc2030;border:none;color:#fff;padding:5px 12px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;cursor:pointer;}
+    .btn-cancel-sm{background:transparent;border:1px solid #3a1820;color:#666;padding:5px 12px;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:12px;cursor:pointer;}
+    .setup-note{font-size:12px;color:#555;font-family:'JetBrains Mono',monospace;line-height:1.8;margin-bottom:16px;}
+    .setup-note a{color:#9147ff;text-decoration:none;}
+    .setup-note a:hover{text-decoration:underline;}
+    .setup-step{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #1a1a26;}
+    .setup-step:last-child{border-bottom:none;}
+    .step-num{color:#9147ff;font-weight:700;font-family:'JetBrains Mono',monospace;font-size:12px;flex-shrink:0;width:18px;}
+    .step-text{font-size:12px;color:#666;font-family:'JetBrains Mono',monospace;line-height:1.7;}
+    .step-text strong{color:#b8b8cc;}
+    .uri-box{background:#080810;border:1px solid #1e1e2c;padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#9147ff;word-break:break-all;margin:8px 0;}
+    .spin{animation:spin .9s linear infinite;display:inline-block;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .fade-in{animation:fi .25s ease;}
+    @keyframes fi{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    const RANK_TIERS = [
+      "Unranked","Iron 1","Iron 2","Iron 3","Bronze 1","Bronze 2","Bronze 3",
+      "Silver 1","Silver 2","Silver 3","Gold 1","Gold 2","Gold 3",
+      "Platinum 1","Platinum 2","Platinum 3","Diamond 1","Diamond 2","Diamond 3",
+      "Ascendant 1","Ascendant 2","Ascendant 3","Immortal 1","Immortal 2","Immortal 3","Radiant"
+    ];
+    const RANK_ORDER = Object.fromEntries(RANK_TIERS.map((t, i) => [t, i]));
+    const RANK_PALETTE = {
+      Unranked: { bg:"#1c1c24", text:"#666",    border:"#2a2a36" },
+      Iron:     { bg:"#181a1c", text:"#9ea4a8", border:"#4a5055" },
+      Bronze:   { bg:"#1c1610", text:"#c9905e", border:"#7a4e28" },
+      Silver:   { bg:"#181c20", text:"#c4d2db", border:"#6a8fa0" },
+      Gold:     { bg:"#1c1a0e", text:"#f0cc50", border:"#a07820" },
+      Platinum: { bg:"#0e1c1e", text:"#48c8d5", border:"#1a7f8a" },
+      Diamond:  { bg:"#16102a", text:"#c090ff", border:"#7040cc" },
+      Ascendant:{ bg:"#0e1c14", text:"#40df90", border:"#1a8044" },
+      Immortal: { bg:"#1e0e10", text:"#ff4655", border:"#cc1e2a" },
+      Radiant:  { bg:"#1e1a08", text:"#ffe44d", border:"#cc9900" },
+    };
+    const REGIONS = [
+      { value:"na",    label:"NA — North America" },
+      { value:"eu",    label:"EU — Europe" },
+      { value:"ap",    label:"AP — Asia Pacific" },
+      { value:"kr",    label:"KR — Korea" },
+      { value:"latam", label:"LATAM — Latin America" },
+      { value:"br",    label:"BR — Brazil" },
+    ];
+    const REGION_TABS = [
+      { value:"all",   label:"All Regions" },
+      { value:"na",    label:"NA" },
+      { value:"eu",    label:"EU" },
+      { value:"ap",    label:"AP" },
+      { value:"kr",    label:"KR" },
+      { value:"latam", label:"LATAM" },
+      { value:"br",    label:"BR" },
+    ];
+    const TOP3 = ["#FFD700","#C0C0C0","#CD7F32"];
+
+    function getRankPalette(tier) {
+      if (!tier || tier === "Unranked") return RANK_PALETTE.Unranked;
+      return RANK_PALETTE[tier.split(" ")[0]] || RANK_PALETTE.Unranked;
+    }
+
+    // Sort key: ELO is the true composite MMR (encodes tier + RR into a single number).
+    // Radiant players have the highest ELO. This correctly orders every player globally.
+    function sortKey(s) {
+      const elo = s.rank?.elo;
+      if (elo != null && elo > 0) return elo;
+      // Fallback if ELO missing: derive from tier order + RR
+      const tier = RANK_ORDER[s.rank?.tier] ?? -1;
+      return tier * 100 + (s.rank?.rr ?? 0);
+    }
+
+    async function lookupRank(name, tag, region) {
+      try {
+        const res = await fetch(
+          `https://api.henrikdev.xyz/valorant/v1/mmr/${region}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`,
+          { headers:{ Accept:"application/json" } }
+        );
+        const json = await res.json();
+        if (!res.ok || json.status !== 200)
+          return { error: json.errors?.[0]?.message || json.message || `Status ${res.status}` };
+        const d = json.data;
+        if (!d) return { error: "No rank data — player may not have played ranked this act." };
+        return {
+          tier: d.currenttierpatched || "Unranked",
+          rr:   d.ranking_in_tier   ?? 0,
+          elo:  d.elo               ?? 0,
+          lastUpdated: Date.now(),
+        };
+      } catch(e) { return { error: e.message }; }
+    }
+
+    async function fetchTwitchUser(token, clientId) {
+      const res = await fetch("https://api.twitch.tv/helix/users", {
+        headers: { "Authorization": `Bearer ${token}`, "Client-Id": clientId }
+      });
+      const json = await res.json();
+      if (!res.ok) return { error: json.message || "Twitch API error" };
+      const u = json.data?.[0];
+      if (!u) return { error: "No Twitch user returned" };
+      return { login: u.login, displayName: u.display_name, avatar: u.profile_image_url };
+    }
+
+    function openTwitchPopup(clientId, redirectUri) {
+      const p = new URLSearchParams({ client_id: clientId, redirect_uri: redirectUri, response_type: "token", scope: "user:read:email", force_verify: "true" });
+      return window.open(`https://id.twitch.tv/oauth2/authorize?${p}`, "tw_auth", "width=520,height=680,scrollbars=yes");
+    }
+
+    function timeAgo(ts) {
+      if (!ts) return "never";
+      const d = Date.now() - ts;
+      if (d < 60000) return "just now";
+      if (d < 3600000) return `${Math.floor(d/60000)}m ago`;
+      if (d < 86400000) return `${Math.floor(d/3600000)}h ago`;
+      return `${Math.floor(d/86400000)}d ago`;
+    }
+
+    const LS = {
+      get: (key) => { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } },
+      set: (key, val) => { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} },
+    };
+
+    // Official VALORANT logo from Riot's media kit
+    const ValorantCrownLogo = () => (
+      <img
+        src="https://playvalorant.com/static/img/valorant-logo.dfe5f9ac.svg"
+        alt="VALORANT"
+        style={{height:34, width:"auto", flexShrink:0}}
+        onError={e=>{
+          e.target.onerror=null;
+          e.target.src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Valorant_logo.svg/544px-Valorant_logo.svg.png";
+        }}
+      />
+    );
+
+    const TwitchIcon = ({ size=16 }) => (
+      <svg width={size} height={size} viewBox="0 0 24 28" fill="currentColor" style={{flexShrink:0}}>
+        <path d="M2.149 0L0 6.5v19.5H6.5V28H11l2.5-2h4.5L23 21V0H2.149zM20.5 19.5L17 23h-5.5L9 25v-2.5H3.5V2.5h17v17zM13 7H11v6h2V7zm5 0h-2v6h2V7z"/>
+      </svg>
+    );
+
+    const GearIcon = ({ size=14 }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+      </svg>
+    );
+
+    // ── Owner config: paste your Twitch Client ID here ──────────────────────
+    const TWITCH_CLIENT_ID = "wdq8zwqrjxpla3vli6j556hclvb2wy";
+    // ────────────────────────────────────────────────────────────────────────
+
+    function App() {
+      const [streamers, setStreamers]         = useState([]);
+      const [loaded, setLoaded]               = useState(false);
+      const [search, setSearch]               = useState("");
+      const [activeRegion, setActiveRegion]   = useState("all");
+      const [modal, setModal]                 = useState(false);
+      const [confirmDel, setConfirmDel]       = useState(null);
+      const [twitchUser, setTwitchUser]       = useState(null);
+      const [twConnecting, setTwConnecting]   = useState(false);
+      const [twErr, setTwErr]                 = useState("");
+      const [form, setForm]                   = useState({ twitch:"", name:"", tag:"", region:"na" });
+      const [formErr, setFormErr]             = useState("");
+      const [submitting, setSubmitting]       = useState(false);
+      const [autoRefreshing, setAutoRefreshing] = useState(false);
+      const [countdown, setCountdown]         = useState(null);
+      const [nextRefresh, setNextRefresh]     = useState(null);
+      const streamersRef = useRef([]);
+      streamersRef.current = streamers;
+
+      const savedCid = TWITCH_CLIENT_ID;
+      const redirectUri = window.location.href.split("#")[0];
+
+      useEffect(() => {
+        const data = LS.get("tf_streamers");
+        if (data && Array.isArray(data)) {
+          setStreamers(data);
+          setLoaded(true);
+          if (data.length > 0) refreshAll(data);
+        } else { setLoaded(true); }
+      }, []);
+
+      useEffect(() => {
+        if (!loaded) return;
+        LS.set("tf_streamers", streamers);
+      }, [streamers, loaded]);
+
+      useEffect(() => {
+        if (!nextRefresh) return;
+        const t = setInterval(() => setCountdown(Math.max(0, Math.round((nextRefresh - Date.now()) / 1000))), 1000);
+        return () => clearInterval(t);
+      }, [nextRefresh]);
+
+      useEffect(() => {
+        if (!loaded) return;
+        const iv = setInterval(() => refreshAll(streamersRef.current), 3 * 60 * 1000);
+        setNextRefresh(Date.now() + 3 * 60 * 1000);
+        return () => clearInterval(iv);
+      }, [loaded]);
+
+      async function refreshAll(list) {
+        if (!list?.length) return;
+        setAutoRefreshing(true);
+        for (let i = 0; i < list.length; i++) {
+          const s = list[i];
+          const rank = await lookupRank(s.name, s.tag, s.region);
+          if (!rank.error) setStreamers(p => p.map(x => x.id === s.id ? { ...x, rank } : x));
+          if (i < list.length - 1) await new Promise(r => setTimeout(r, 2200));
+        }
+        setAutoRefreshing(false);
+        setNextRefresh(Date.now() + 3 * 60 * 1000);
+      }
+
+      function openRegister() {
+        setTwitchUser(null); setTwErr(""); setFormErr("");
+        setForm({ twitch:"", name:"", tag:"", region: activeRegion !== "all" ? activeRegion : "na" });
+        setModal(true);
+      }
+
+      function handleConnectTwitch() {
+        if (!savedCid) { setTwErr("Twitch login isn't configured yet. The site owner needs to set it up first."); return; }
+        setTwErr(""); setTwConnecting(true);
+        const popup = openTwitchPopup(savedCid, redirectUri);
+        if (!popup) { setTwErr("Popup was blocked — please allow popups, then try again."); setTwConnecting(false); return; }
+        const poll = setInterval(async () => {
+          try {
+            const hash = popup.location.hash;
+            if (hash?.includes("access_token")) {
+              clearInterval(poll);
+              const token = new URLSearchParams(hash.slice(1)).get("access_token");
+              popup.close();
+              const user = await fetchTwitchUser(token, savedCid);
+              if (user.error) { setTwErr(`Couldn't get Twitch info: ${user.error}`); setTwConnecting(false); return; }
+              setTwitchUser(user);
+              setForm(f => ({ ...f, twitch: user.login }));
+              setTwConnecting(false);
+            }
+          } catch (_) {}
+          if (popup.closed) { clearInterval(poll); setTwConnecting(false); }
+        }, 600);
+      }
+
+      async function handleSubmit() {
+        setFormErr("");
+        const { twitch, name, tag, region } = form;
+        if (!twitch.trim() || !name.trim() || !tag.trim()) { setFormErr("All fields are required."); return; }
+        if (streamers.find(s => s.twitch.toLowerCase() === twitch.trim().toLowerCase())) {
+          setFormErr("This Twitch username is already on the leaderboard."); return;
+        }
+        setSubmitting(true);
+        const rank = await lookupRank(name.trim(), tag.trim(), region);
+        if (rank.error) { setFormErr(`Couldn't find Valorant account: ${rank.error}`); setSubmitting(false); return; }
+        setStreamers(p => [...p, {
+          id: `${Date.now()}`, twitch: twitch.trim(), name: name.trim(),
+          tag: tag.trim(), region, rank, avatar: twitchUser?.avatar || null,
+        }]);
+        setForm({ twitch:"", name:"", tag:"", region:"na" });
+        setTwitchUser(null); setModal(false); setSubmitting(false);
+      }
+
+      async function handleRefresh(id) {
+        const s = streamers.find(x => x.id === id);
+        if (!s) return;
+        const rank = await lookupRank(s.name, s.tag, s.region);
+        if (!rank.error) setStreamers(p => p.map(x => x.id === id ? { ...x, rank } : x));
+      }
+
+      // Sort by ELO (true MMR) descending — this correctly ranks players across all tiers
+      const globalSorted = [...streamers].sort((a, b) => sortKey(b) - sortKey(a));
+
+      // Region-filtered + search-filtered list for display
+      const regionFiltered = activeRegion === "all"
+        ? globalSorted
+        : globalSorted.filter(s => s.region === activeRegion);
+
+      const q = search.trim().toLowerCase();
+      const displayed = q
+        ? regionFiltered.filter(s => s.twitch.toLowerCase().includes(q) || `${s.name}#${s.tag}`.toLowerCase().includes(q))
+        : regionFiltered;
+
+      // Position within the current region's leaderboard
+      const regionSorted = activeRegion === "all" ? globalSorted : globalSorted.filter(s => s.region === activeRegion);
+      const regionPos = id => regionSorted.findIndex(s => s.id === id) + 1;
+
+      // Tab counts
+      const countFor = (r) => r === "all" ? streamers.length : streamers.filter(s => s.region === r).length;
+
+      // Top player for stats bar (in current region)
+      const topPlayer = regionSorted[0];
+
+      return (
+        <div className="vr">
+
+          {/* ── Header ── */}
+          <div className="vr-header">
+            <div className="vr-brand">
+              <ValorantCrownLogo />
+              <div className="vr-brand-text">
+                <div className="vr-brand-name">TOPFRAGGED<span>.COM</span></div>
+                <div className="vr-brand-sub">
+                  <span className="tw">TWITCH</span> STREAMER <span className="vl">VALORANT</span> LEADERBOARDS
+                </div>
+              </div>
+            </div>
+            <div className="vr-spacer" />
+            <div className="vr-search-wrap">
+              <span className="vr-search-icon">⌕</span>
+              <input className="vr-search" placeholder="Search streamers…" value={search} onChange={e=>setSearch(e.target.value)} />
+            </div>
+            <button className="btn-twitch" onClick={openRegister}>
+              <TwitchIcon size={14} /> Add Streamer
+            </button>
+
+          </div>
+
+          {/* ── Stats bar ── */}
+          <div className="vr-stats-bar">
+            <div className="vr-stat"><span>{streamers.length}</span> streamers tracked</div>
+            {topPlayer && <>
+              <div className="vr-stat" style={{color:"#1e1e2c"}}>·</div>
+              <div className="vr-stat">
+                {activeRegion !== "all" ? <span style={{color:"#555"}}>{activeRegion.toUpperCase()} </span> : ""}
+                Top: <span style={{color:getRankPalette(topPlayer.rank?.tier).text}}>{topPlayer.rank?.tier||"Unranked"}</span>
+                {" "}<span style={{color:"#9147ff"}}>@{topPlayer.twitch}</span>
+                {topPlayer.rank?.elo > 0 && <span style={{color:"#333"}}> · {topPlayer.rank.elo} ELO</span>}
+              </div>
+            </>}
+            <div style={{flex:1}} />
+            {autoRefreshing
+              ? <div className="vr-stat" style={{display:"flex",alignItems:"center",gap:5}}>
+                  <span className="spin" style={{color:"#ff4655"}}>↻</span>
+                  <span style={{color:"#ff4655"}}>Refreshing…</span>
+                </div>
+              : countdown !== null && streamers.length > 0
+                ? <div className="vr-stat">next refresh <span>{Math.floor(countdown/60)}:{String(countdown%60).padStart(2,"0")}</span></div>
+                : null
+            }
+          </div>
+
+          {/* ── Region Tabs ── */}
+          <div className="region-tabs">
+            {REGION_TABS.map(tab => (
+              <button
+                key={tab.value}
+                className={`region-tab${activeRegion === tab.value ? " active" : ""}`}
+                onClick={() => setActiveRegion(tab.value)}
+              >
+                {tab.label}
+                <span className="count">({countFor(tab.value)})</span>
+              </button>
+            ))}
+          </div>
+
+          {/* ── Table ── */}
+          <div className="vr-table-head">
+            <div className="vr-th">#</div>
+            <div className="vr-th">STREAMER</div>
+            <div className="vr-th">RANK</div>
+            <div className="vr-th">ELO / RR</div>
+            <div className="vr-th">REGION</div>
+            <div className="vr-th"></div>
+          </div>
+          <div className="vr-rows">
+            {!loaded ? (
+              <div style={{textAlign:"center",padding:50,color:"#333",fontFamily:"JetBrains Mono,monospace",fontSize:12}}>Loading…</div>
+            ) : displayed.length === 0 ? (
+              <div className="vr-empty">
+                {streamers.length === 0 ? <>
+                  <div className="vr-empty-title">No streamers yet</div>
+                  <div className="vr-empty-sub">Be the first to connect your Twitch and join the leaderboard.</div>
+                  <button className="btn-twitch" onClick={openRegister} style={{margin:"0 auto"}}><TwitchIcon size={14} /> Login with Twitch</button>
+                </> : <>
+                  <div className="vr-empty-title">No streamers in {activeRegion === "all" ? "this search" : activeRegion.toUpperCase()}</div>
+                  <div className="vr-empty-sub">{q ? `No results for "${q}"` : "No streamers have registered for this region yet."}</div>
+                </>}
+              </div>
+            ) : displayed.map(s => {
+              const pal = getRankPalette(s.rank?.tier);
+              const pos = regionPos(s.id);
+              const isTop3   = pos <= 3;
+              const isRadiant  = s.rank?.tier === "Radiant";
+              const isUnranked = !s.rank?.tier || s.rank.tier === "Unranked";
+              return (
+                <div key={s.id}>
+                  <div className="vr-row fade-in">
+
+                    {/* Position */}
+                    <div className={`vr-pos${isTop3?" top":""}`} style={isTop3?{color:TOP3[pos-1]}:{}}>{pos}</div>
+
+                    {/* Streamer */}
+                    <div className="vr-streamer">
+                      {s.avatar
+                        ? <img src={s.avatar} alt="" className="vr-avatar" />
+                        : <div className="vr-avatar-ph">{s.twitch.slice(0,2).toUpperCase()}</div>
+                      }
+                      <div>
+                        <a className="vr-twitch-link" href={`https://twitch.tv/${s.twitch}`} target="_blank" rel="noopener noreferrer">{s.twitch}</a>
+                        <a className="vr-riot-link" href={`https://tracker.gg/valorant/profile/riot/${encodeURIComponent(s.name)}%23${s.tag}/overview`} target="_blank" rel="noopener noreferrer">{s.name}#{s.tag}</a>
+                      </div>
+                    </div>
+
+                    {/* Rank badge */}
+                    <div>
+                      <span className="vr-badge" style={{background:pal.bg,color:pal.text,borderColor:pal.border}}>
+                        <span className="vr-dot" style={{background:pal.text}} />
+                        {s.rank?.tier || "Unranked"}
+                      </span>
+                    </div>
+
+                    {/* ELO + RR column */}
+                    <div className="vr-elo-col">
+                      {isUnranked ? (
+                        <div className="vr-elo-val" style={{color:"#444"}}>—</div>
+                      ) : (
+                        <>
+                          <div className="vr-elo-val" style={{color:pal.text}}>
+                            {isRadiant ? "RADIANT" : `${s.rank.elo > 0 ? s.rank.elo + " ELO" : s.rank.rr + " RR"}`}
+                          </div>
+                          {!isRadiant && (
+                            <>
+                              <div className="vr-rr-val">{s.rank.rr} RR</div>
+                              <div className="vr-rr-track">
+                                <div className="vr-rr-fill" style={{width:`${Math.min(100,s.rank.rr)}%`,background:pal.text}}/>
+                              </div>
+                            </>
+                          )}
+                          <div className="vr-time">{timeAgo(s.rank?.lastUpdated)}</div>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Region */}
+                    <div className="vr-region">{s.region}</div>
+
+                    {/* Actions */}
+                    <div className="vr-actions">
+                      <button className="vr-icon-btn" title="Refresh rank" onClick={()=>handleRefresh(s.id)}>↻</button>
+                      <button className="vr-icon-btn" title="Remove" onClick={()=>setConfirmDel(confirmDel===s.id?null:s.id)}>✕</button>
+                    </div>
+                  </div>
+
+                  {confirmDel === s.id && (
+                    <div className="vr-confirm">
+                      <div className="vr-confirm-text">Remove {s.twitch} from the leaderboard?</div>
+                      <button className="btn-cancel-sm" onClick={()=>setConfirmDel(null)}>Cancel</button>
+                      <button className="btn-del" onClick={()=>{setStreamers(p=>p.filter(x=>x.id!==s.id));setConfirmDel(null);}}>Remove</button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {streamers.length > 0 && (
+            <div className="vr-footer">
+              <div className="vr-footer-note">
+                Rank data via HenrikDev API · Sorted by ELO (true MMR) · Ranks refresh every 3 minutes · Click Riot IDs to open tracker.gg
+              </div>
+            </div>
+          )}
+
+          {/* ── Add Streamer Modal ── */}
+          {modal && (
+            <div className="overlay" onClick={e=>e.target===e.currentTarget&&setModal(false)}>
+              <div className="modal">
+                <div className="modal-head">
+                  <div className="modal-bar" style={{background:"#9147ff"}} />
+                  <div className="modal-title">Add Streamer</div>
+                </div>
+                <div className="modal-body">
+                  {twitchUser ? (
+                    <>
+                      <div className="tw-who">
+                        <img src={twitchUser.avatar} alt="" />
+                        <div>
+                          <div className="tw-who-name">{twitchUser.displayName}</div>
+                          <div className="tw-who-sub">twitch.tv/{twitchUser.login}</div>
+                        </div>
+                        <button className="tw-who-x" onClick={()=>{setTwitchUser(null);setForm(f=>({...f,twitch:""}));}}>✕</button>
+                      </div>
+                      <div className="vr-field-row">
+                        <div className="vr-field">
+                          <label className="vr-label">RIOT NAME</label>
+                          <input className="vr-input" placeholder="e.g. TenZ" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} />
+                        </div>
+                        <div className="vr-field">
+                          <label className="vr-label"># TAG</label>
+                          <input className="vr-input" placeholder="e.g. NA1" value={form.tag} onChange={e=>setForm(f=>({...f,tag:e.target.value}))} />
+                        </div>
+                      </div>
+                      <div className="vr-field">
+                        <label className="vr-label">REGION</label>
+                        <select className="vr-select" value={form.region} onChange={e=>setForm(f=>({...f,region:e.target.value}))}>
+                          {REGIONS.map(r=><option key={r.value} value={r.value}>{r.label}</option>)}
+                        </select>
+                      </div>
+                      {formErr && <div className="err-box">{formErr}</div>}
+                      <div className="modal-actions">
+                        <button className="btn-ghost" onClick={()=>setModal(false)}>Cancel</button>
+                        <button className="btn-red" style={{flex:1}} onClick={handleSubmit} disabled={submitting}>
+                          {submitting ? "Looking up rank…" : "Add to Leaderboard"}
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p style={{fontSize:13,color:"#666",fontFamily:"JetBrains Mono,monospace",marginBottom:20,lineHeight:1.7}}>
+                        Sign in with your Twitch account to register. Your username will be verified automatically — no impersonation possible.
+                      </p>
+                      <button className="btn-twitch" style={{width:"100%",justifyContent:"center",padding:"14px",fontSize:15}}
+                        onClick={handleConnectTwitch} disabled={twConnecting}>
+                        <TwitchIcon size={17} />
+                        {twConnecting ? "Opening Twitch…" : "Login with Twitch"}
+                      </button>
+                      {twErr && <div className="err-box" style={{marginTop:12}}>{twErr}</div>}
+                      <div style={{marginTop:20}}>
+                        <button className="btn-ghost" style={{width:"100%"}} onClick={()=>setModal(false)}>Cancel</button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
