@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TOPFRAGGED.COM | TWITCH STREAMER VALORANT LEADERBOARDS</title>
+
+  <!-- Favicon: red crown -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%230b0b12'/%3E%3Cpath d='M4 11L8.5 16.5L16 6L23.5 16.5L28 11L30 22H2L4 11Z' fill='%23ff4655'/%3E%3Crect x='2' y='20.5' width='28' height='4' rx='1' fill='%23cc1e2a'/%3E%3Ccircle cx='4' cy='11' r='2.2' fill='%23ff9aaa'/%3E%3Ccircle cx='16' cy='6' r='2.2' fill='%23ff9aaa'/%3E%3Ccircle cx='28' cy='11' r='2.2' fill='%23ff9aaa'/%3E%3C/svg%3E">
+
+  <!-- Open Graph / Discord / iMessage embeds -->
+  <meta property="og:type"        content="website" />
+  <meta property="og:url"         content="https://topfragged.com/" />
+  <meta property="og:title"       content="TOPFRAGGED.COM | TWITCH STREAMER VALORANT LEADERBOARDS" />
+  <meta property="og:description" content="Track your favorite Valorant streamers, climb the rankings, and see who's truly top fragging. Compare stats, discover new creators, and watch the leaderboard battle change live every day." />
+  <meta property="og:image"       content="https://topfragged.com/og-image.png" />
+  <meta property="og:image:width"  content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <!-- Twitter / X card -->
+  <meta name="twitter:card"        content="summary_large_image" />
+  <meta name="twitter:title"       content="TOPFRAGGED.COM | TWITCH STREAMER VALORANT LEADERBOARDS" />
+  <meta name="twitter:description" content="Track your favorite Valorant streamers, climb the rankings, and see who's truly top fragging. Compare stats, discover new creators, and watch the leaderboard battle change live every day." />
+  <meta name="twitter:image"       content="https://topfragged.com/og-image.png" />
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body,#root{min-height:100vh;}
+    body{background:#0b0b12;}
+    .vr{min-height:100vh;background:#0b0b12;color:#d8d8e8;font-family:'Rajdhani',sans-serif;display:flex;flex-direction:column;}
+    .vr-header{display:flex;align-items:center;gap:16px;padding:12px 28px;border-bottom:1px solid #1e1e2c;background:#0e0e18;flex-wrap:wrap;}
+    .vr-brand{display:flex;align-items:center;gap:10px;}
+    .vr-brand-text{line-height:1.15;}
+    .vr-brand-name{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:26px;letter-spacing:.08em;color:#fff;}
+    .vr-brand-name span{color:#ff4655;}
+    .vr-brand-sub{font-size:9px;letter-spacing:.16em;color:#444;font-family:'JetBrains Mono',monospace;}
+    .vr-brand-sub .tw{color:#9147ff;}
+    .vr-brand-sub .vl{color:#ff4655;}
+    .vr-spacer{flex:1;}
+    .vr-search-wrap{position:relative;}
+    .vr-search{background:#15151e;border:1px solid #252532;color:#d8d8e8;padding:8px 14px 8px 36px;font-family:'JetBrains Mono',monospace;font-size:12px;width:210px;outline:none;transition:border-color .15s;}
+    .vr-search:focus{border-color:#9147ff;}
+    .vr-search::placeholder{color:#3a3a4a;}
+    .vr-search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#3a3a4a;font-size:15px;pointer-events:none;}
+    .btn-twitch{background:#9147ff;color:#fff;border:none;padding:10px 20px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;letter-spacing:.06em;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .15s,transform .1s;white-space:nowrap;}
+    .btn-twitch:hover{background:#a970ff;}
+    .btn-twitch:active{transform:scale(.97);}
+    .btn-twitch:disabled{opacity:.6;cursor:not-allowed;}
+    .btn-red{background:#ff4655;color:#fff;border:none;padding:10px 18px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;letter-spacing:.08em;cursor:pointer;transition:background .15s,transform .1s;}
+    .btn-red:hover{background:#ff6272;}
+    .btn-red:active{transform:scale(.97);}
+    .btn-red:disabled{opacity:.6;cursor:not-allowed;}
+    .btn-ghost{background:transparent;border:1px solid #252535;color:#666;padding:9px 16px;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:13px;letter-spacing:.06em;cursor:pointer;transition:border-color .15s,color .15s;}
+    .btn-ghost:hover{border-color:#9147ff;color:#9147ff;}
+    .btn-icon{background:transparent;border:1px solid #252535;color:#555;padding:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s;}
+    .btn-icon:hover{border-color:#9147ff;color:#9147ff;}
+    .vr-stats-bar{display:flex;align-items:center;gap:16px;padding:7px 28px;background:#0e0e16;border-bottom:1px solid #181824;flex-wrap:wrap;}
+    .vr-stat{font-size:11px;font-family:'JetBrains Mono',monospace;color:#444;}
+    .vr-stat span{color:#ff4655;}
+    .region-tabs{display:flex;align-items:stretch;border-bottom:1px solid #1a1a26;background:#0d0d1a;padding:0 28px;gap:2px;overflow-x:auto;scrollbar-width:none;}
+    .region-tabs::-webkit-scrollbar{display:none;}
+    .region-tab{padding:10px 18px;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:13px;letter-spacing:.06em;color:#444;cursor:pointer;border:none;background:transparent;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap;}
+    .region-tab:hover{color:#d8d8e8;}
+    .region-tab.active{color:#ff4655;border-bottom-color:#ff4655;}
+    .region-tab .count{font-family:'JetBrains Mono',monospace;font-size:10px;color:#3a3a4a;margin-left:5px;}
+    .region-tab.active .count{color:#ff4655;}
+    .vr-table-head{display:grid;grid-template-columns:48px 1fr 180px 120px 70px 80px;gap:12px;padding:10px 28px;border-bottom:1px solid #1e1e2c;}
+    .vr-th{font-size:10px;font-weight:600;letter-spacing:.12em;color:#3a3a4a;font-family:'JetBrains Mono',monospace;}
+    .vr-rows{padding:0 28px;flex:1;}
+    .vr-row{display:grid;grid-template-columns:48px 1fr 180px 120px 70px 80px;gap:12px;padding:12px 0;border-bottom:1px solid #13131e;align-items:center;transition:background .1s;}
+    .vr-row:hover{background:rgba(145,71,255,.04);margin:0 -28px;padding:12px 28px;}
+    .vr-pos{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:500;color:#ff4655;text-align:center;}
+    .vr-pos.top{font-size:15px;font-weight:700;}
+    .vr-streamer{display:flex;align-items:center;gap:10px;}
+    .vr-avatar{width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid #2a2a3a;flex-shrink:0;}
+    .vr-avatar-ph{width:34px;height:34px;border-radius:50%;background:#1a1020;border:1px solid #2a2a3a;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;color:#9147ff;font-weight:700;font-family:'JetBrains Mono',monospace;}
+    .vr-twitch-link{color:#9147ff;text-decoration:none;font-weight:700;font-size:15px;letter-spacing:.02em;transition:color .1s;display:block;}
+    .vr-twitch-link:hover{color:#b07dff;}
+    .vr-riot-link{font-family:'JetBrains Mono',monospace;font-size:11px;color:#3a3a4a;margin-top:2px;text-decoration:none;transition:color .1s;}
+    .vr-riot-link:hover{color:#666;}
+    .vr-badge{display:inline-flex;align-items:center;padding:3px 10px 3px 8px;font-weight:700;font-size:12px;letter-spacing:.05em;border:1px solid;font-family:'Rajdhani',sans-serif;gap:6px;}
+    .vr-dot{width:6px;height:6px;border-radius:50%;}
+    .vr-elo-col{display:flex;flex-direction:column;gap:3px;}
+    .vr-elo-val{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;}
+    .vr-rr-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:#555;}
+    .vr-rr-track{height:3px;background:#1e1e2c;overflow:hidden;width:80px;}
+    .vr-rr-fill{height:100%;}
+    .vr-region{font-family:'JetBrains Mono',monospace;font-size:11px;color:#555;text-transform:uppercase;}
+    .vr-time{font-family:'JetBrains Mono',monospace;font-size:10px;color:#3a3a4a;margin-top:2px;}
+    .vr-actions{display:flex;gap:4px;justify-content:flex-end;}
+    .vr-icon-btn{background:transparent;border:none;color:#3a3a4a;cursor:pointer;padding:5px;font-size:15px;line-height:1;transition:color .15s;}
+    .vr-icon-btn:hover{color:#ff4655;}
+    .vr-empty{text-align:center;padding:72px 20px;}
+    .vr-empty-title{font-size:22px;font-weight:700;letter-spacing:.04em;color:#ccc;margin-bottom:8px;}
+    .vr-empty-sub{font-size:12px;color:#444;margin-bottom:26px;font-family:'JetBrains Mono',monospace;line-height:1.6;}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;z-index:200;}
+    .modal{background:#12121c;border:1px solid #252535;width:420px;max-width:94vw;max-height:90vh;overflow-y:auto;}
+    .modal-head{padding:22px 24px 0;display:flex;align-items:center;gap:10px;}
+    .modal-bar{width:3px;height:20px;flex-shrink:0;}
+    .modal-title{font-size:18px;font-weight:700;letter-spacing:.06em;color:#fff;}
+    .modal-body{padding:20px 24px 24px;}
+    .vr-field{margin-bottom:14px;}
+    .vr-label{font-size:10px;font-weight:600;letter-spacing:.14em;color:#444;font-family:'JetBrains Mono',monospace;display:block;margin-bottom:5px;}
+    .vr-input{background:#0e0e18;border:1px solid #252535;color:#d8d8e8;padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;width:100%;transition:border-color .15s;}
+    .vr-input:focus{border-color:#9147ff;}
+    .vr-input::placeholder{color:#2a2a3a;}
+    .vr-input.locked{border-color:#9147ff;background:#0e0918;color:#b07dff;cursor:default;}
+    .vr-select{background:#0e0e18;border:1px solid #252535;color:#d8d8e8;padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;width:100%;cursor:pointer;}
+    .vr-field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .err-box{font-family:'JetBrains Mono',monospace;font-size:11px;color:#ff4655;padding:9px 12px;background:rgba(255,70,85,.08);border:1px solid rgba(255,70,85,.2);margin-bottom:12px;line-height:1.5;}
+    .ok-box{font-family:'JetBrains Mono',monospace;font-size:11px;color:#40df90;padding:9px 12px;background:rgba(64,223,144,.06);border:1px solid rgba(64,223,144,.2);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+    .tw-who{display:flex;align-items:center;gap:10px;background:#0e0918;border:1px solid #3a2a5a;padding:10px 14px;margin-bottom:16px;}
+    .tw-who img{width:36px;height:36px;border-radius:50%;}
+    .tw-who-name{font-size:14px;font-weight:700;color:#d8d8e8;}
+    .tw-who-sub{font-size:10px;color:#9147ff;font-family:'JetBrains Mono',monospace;margin-top:1px;}
+    .tw-who-x{margin-left:auto;background:transparent;border:none;color:#444;cursor:pointer;font-size:16px;padding:2px 6px;transition:color .1s;}
+    .tw-who-x:hover{color:#ff4655;}
+    .modal-actions{display:flex;gap:10px;margin-top:16px;}
+    .vr-footer{padding:12px 28px;border-top:1px solid #13131e;margin-top:6px;}
+    .vr-footer-note{font-family:'JetBrains Mono',monospace;font-size:10px;color:#282832;}
+    .vr-confirm{background:#1a0e10;border:1px solid #3a1820;padding:10px 14px;margin-top:4px;display:flex;align-items:center;gap:10px;}
+    .vr-confirm-text{font-size:12px;color:#cc6070;font-family:'JetBrains Mono',monospace;flex:1;}
+    .btn-del{background:#cc2030;border:none;color:#fff;padding:5px 12px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;cursor:pointer;}
+    .btn-cancel-sm{background:transparent;border:1px solid #3a1820;color:#666;padding:5px 12px;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:12px;cursor:pointer;}
+    .spin{animation:spin .9s linear infinite;display:inline-block;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .fade-in{animation:fi .25s ease;}
+    @keyframes fi{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+
+    /* ── Owner Panel ── */
+    .owner-panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;display:flex;justify-content:flex-end;}
+    .owner-panel{width:680px;max-width:100vw;height:100vh;background:#0f0f1a;border-left:1px solid #1e1e2c;display:flex;flex-direction:column;animation:slideIn .22s ease;}
+    @keyframes slideIn{from{transform:translateX(100%)}to{transform:none}}
+    .owner-panel-head{padding:20px 24px 0;display:flex;align-items:center;gap:12px;flex-shrink:0;background:#0e0e18;border-bottom:1px solid #1a1a26;}
+    .owner-panel-tabs{display:flex;gap:2px;padding:0 24px;background:#0e0e18;}
+    .owner-panel-tab{padding:10px 20px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;letter-spacing:.07em;border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;display:flex;align-items:center;gap:8px;}
+    .owner-panel-tab.active{color:#ff4655;border-bottom-color:#ff4655;}
+    .owner-panel-tab:not(.active){color:#444;}
+    .owner-panel-tab:not(.active):hover{color:#d8d8e8;}
+    .owner-panel-body{flex:1;overflow-y:auto;padding:20px 24px 32px;}
+    .report-card{background:#13131f;border:1px solid #1e1e2c;padding:16px;margin-bottom:10px;border-radius:2px;transition:border-color .15s;}
+    .report-card:hover{border-color:#252535;}
+    .report-streamer{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:16px;color:#9147ff;}
+    .report-riot{font-family:'JetBrains Mono',monospace;font-size:11px;color:#444;margin-left:8px;}
+    .report-reason{display:inline-block;margin-top:6px;padding:2px 10px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#ff4655;background:rgba(255,70,85,.08);border:1px solid rgba(255,70,85,.2);letter-spacing:.04em;}
+    .report-details{font-family:'JetBrains Mono',monospace;font-size:11px;color:#555;margin-top:6px;font-style:italic;line-height:1.5;padding-left:8px;border-left:2px solid #2a2a3a;}
+    .report-time{font-family:'JetBrains Mono',monospace;font-size:9px;color:#2a2a3a;margin-top:8px;}
+    .report-actions{display:flex;gap:8px;margin-top:12px;}
+    .btn-dismiss{background:transparent;border:1px solid #252535;color:#555;padding:6px 16px;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:12px;cursor:pointer;letter-spacing:.06em;transition:border-color .15s,color .15s;}
+    .btn-dismiss:hover{border-color:#444;color:#888;}
+    .btn-ban-user{background:#cc2030;border:none;color:#fff;padding:6px 18px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;cursor:pointer;letter-spacing:.06em;display:flex;align-items:center;gap:6px;transition:background .15s;}
+    .btn-ban-user:hover{background:#e02535;}
+    .ban-card{background:#13131f;border:1px solid #1e1e2c;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;transition:border-color .15s;}
+    .ban-card:hover{border-color:#252535;}
+    .ban-name{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;color:#d8d8e8;}
+    .ban-reason{font-family:'JetBrains Mono',monospace;font-size:10px;color:#555;margin-top:3px;}
+    .ban-time{font-family:'JetBrains Mono',monospace;font-size:9px;color:#2a2a3a;margin-top:2px;}
+    .btn-revoke{background:transparent;border:1px solid #1a4a30;color:#40df90;padding:5px 14px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;cursor:pointer;letter-spacing:.06em;white-space:nowrap;transition:background .15s,border-color .15s;}
+    .btn-revoke:hover{background:rgba(64,223,144,.08);border-color:#40df90;}
+    .badge-count{background:#ff4655;color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;font-family:'JetBrains Mono',monospace;}
+    .ban-search{background:#0e0e18;border:1px solid #252535;color:#d8d8e8;padding:9px 14px 9px 36px;font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;width:100%;margin-bottom:16px;transition:border-color .15s;}
+    .ban-search:focus{border-color:#9147ff;}
+    .ban-search-wrap{position:relative;margin-bottom:16px;}
+    .ban-search-wrap .ban-search{margin-bottom:0;}
+    .ban-search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#3a3a4a;font-size:14px;pointer-events:none;}
+    .panel-empty{text-align:center;padding:60px 0;font-family:'JetBrains Mono',monospace;font-size:12px;color:#2a2a3a;letter-spacing:.06em;}
+
+    /* ── Mobile ── */
+    @media(max-width:640px){
+      .vr-header{padding:10px 14px;gap:8px;}
+      .vr-brand{width:100%;}
+      .vr-brand-name{font-size:22px;}
+      .vr-brand-sub{font-size:8px;letter-spacing:.12em;}
+      .vr-search-wrap{flex:1;min-width:0;}
+      .vr-search{width:100%;font-size:11px;padding:7px 12px 7px 32px;}
+      .btn-twitch{padding:8px 14px;font-size:13px;}
+      .vr-stats-bar{padding:6px 14px;gap:8px;}
+      .vr-stat{font-size:10px;}
+      .region-tabs{padding:0 14px;}
+      .region-tab{padding:8px 12px;font-size:12px;}
+      .vr-table-head{display:none;}
+      .vr-rows{padding:0 14px;}
+      .vr-row{grid-template-columns:28px 1fr auto auto;gap:8px;padding:10px 0;}
+      .vr-row:hover{margin:0 -14px;padding:10px 14px;}
+      .vr-rank-col{display:none;}
+      .vr-elo-col{display:none;}
+      .vr-region{display:none;}
+      .vr-pos{font-size:12px;}
+      .vr-twitch-link{font-size:13px;}
+      .vr-riot-link{font-size:10px;}
+      .vr-avatar{width:28px;height:28px;}
+      .vr-avatar-ph{width:28px;height:28px;font-size:10px;}
+      .vr-streamer{gap:8px;}
+      .vr-actions{gap:2px;}
+      .vr-icon-btn{font-size:13px;padding:4px;}
+      .vr-confirm{flex-wrap:wrap;gap:8px;padding:8px 10px;}
+      .vr-confirm-text{font-size:11px;width:100%;}
+      .vr-footer{padding:10px 14px;}
+      .social-btn{padding:12px 8px;font-size:12px;gap:6px;letter-spacing:.06em;}
+      .vr-empty{padding:48px 16px;}
+      .vr-empty-title{font-size:18px;}
+      .modal{max-width:98vw;}
+      .modal-body{padding:16px 18px 20px;}
+      .modal-head{padding:18px 18px 0;}
+    }
+    /* social footer */
+    .social-bar{display:flex;align-items:stretch;border-top:2px solid #111120;background:#09090f;margin-top:auto;}
+    .social-btn{display:flex;align-items:center;justify-content:center;gap:9px;flex:1;padding:15px 20px;text-decoration:none;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;letter-spacing:.09em;border:none;cursor:pointer;transition:background .18s;border-right:1px solid #15151f;position:relative;overflow:hidden;}
+    .social-btn:last-child{border-right:none;}
+    .social-btn:hover{filter:brightness(1.18);}
+    .social-btn:active{filter:brightness(.92);}
+    .social-btn-discord{background:#1c1c2e;color:#5865F2;}
+    .social-btn-twitch{background:#160d20;color:#9147ff;}
+    .social-btn-donate{background:#1a0d16;color:#ff6eb0;}
+    .social-btn svg,.social-btn span{position:relative;z-index:1;}
+  </style>
+</head>
+<body>
+
+
+  <div id="root"></div>
+
+  <!-- ── Firebase init — paste your config from console.firebase.google.com ── -->
+  <script>
+    const FIREBASE_CONFIG = {
+      apiKey:            "AIzaSyC7EWzfW0KJhzcmmlIjCmXhayBeK-vzmX4",
+      authDomain:        "topfraggedcom.firebaseapp.com",
+      projectId:         "topfraggedcom",
+      storageBucket:     "topfraggedcom.firebasestorage.app",
+      messagingSenderId: "155159884542",
+      appId:             "1:155159884542:web:91d994966ff748b82dabaf",
+    };
+    firebase.initializeApp(FIREBASE_CONFIG);
+    const db = firebase.firestore();
+  </script>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    const RANK_TIERS = [
+      "Unranked","Iron 1","Iron 2","Iron 3","Bronze 1","Bronze 2","Bronze 3",
+      "Silver 1","Silver 2","Silver 3","Gold 1","Gold 2","Gold 3",
+      "Platinum 1","Platinum 2","Platinum 3","Diamond 1","Diamond 2","Diamond 3",
+      "Ascendant 1","Ascendant 2","Ascendant 3","Immortal 1","Immortal 2","Immortal 3","Radiant"
+    ];
+    const RANK_ORDER = Object.fromEntries(RANK_TIERS.map((t, i) => [t, i]));
+    const RANK_PALETTE = {
+      Unranked: { bg:"#1c1c24", text:"#666",    border:"#2a2a36" },
+      Iron:     { bg:"#181a1c", text:"#9ea4a8", border:"#4a5055" },
+      Bronze:   { bg:"#1c1610", text:"#c9905e", border:"#7a4e28" },
+      Silver:   { bg:"#181c20", text:"#c4d2db", border:"#6a8fa0" },
+      Gold:     { bg:"#1c1a0e", text:"#f0cc50", border:"#a07820" },
+      Platinum: { bg:"#0e1c1e", text:"#48c8d5", border:"#1a7f8a" },
+      Diamond:  { bg:"#16102a", text:"#c090ff", border:"#7040cc" },
+      Ascendant:{ bg:"#0e1c14", text:"#40df90", border:"#1a8044" },
+      Immortal: { bg:"#1e0e10", text:"#ff4655", border:"#cc1e2a" },
+      Radiant:  { bg:"#1e1a08", text:"#ffe44d", border:"#cc9900" },
+    };
+    const REGIONS = [
+      { value:"na",    label:"NA — North America" },
+      { value:"eu",    label:"EU — Europe" },
+      { value:"ap",    label:"Asia Pacific" },
+      { value:"latam", label:"LATAM — Latin America" },
+    ];
+    const REGION_TABS = [
+      { value:"all",   label:"All Regions" },
+      { value:"na",    label:"NA" },
+      { value:"eu",    label:"EU" },
+      { value:"ap",    label:"Asia" },
+      { value:"latam", label:"LATAM" },
+    ];
+    const TOP3 = ["#FFD700","#C0C0C0","#CD7F32"];
+
+    function getRankPalette(tier) {
+      if (!tier || tier === "Unranked") return RANK_PALETTE.Unranked;
+      return RANK_PALETTE[tier.split(" ")[0]] || RANK_PALETTE.Unranked;
+    }
+
+    function sortKey(s) {
+      const elo = s.rank?.elo;
+      if (elo != null && elo > 0) return elo;
+      const tier = RANK_ORDER[s.rank?.tier] ?? -1;
+      return tier * 100 + (s.rank?.rr ?? 0);
+    }
+
+    async function lookupRank(name, tag, region) {
+      try {
+        const res = await fetch(
+          `https://api.henrikdev.xyz/valorant/v1/mmr/${region}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`,
+          { headers: { Accept: "application/json", Authorization: HENRIK_API_KEY } }
+        );
+        const json = await res.json();
+        if (res.status === 404) return { error: "Player not found — check the name and tag." };
+        if (res.status === 429) return { error: "Rate limited — try again in a moment." };
+        if (!res.ok) return { error: json.errors?.[0]?.message || json.message || `Error ${res.status}` };
+        const d = json.data;
+        if (!d) return { error: "No rank data — player may not have played ranked this act." };
+        return {
+          tier:        d.currenttierpatched || "Unranked",
+          rr:          d.ranking_in_tier    ?? 0,
+          elo:         d.elo                ?? 0,
+          lastUpdated: Date.now(),
+        };
+      } catch(e) { return { error: e.message }; }
+    }
+
+    async function fetchTwitchUser(token, clientId) {
+      const res = await fetch("https://api.twitch.tv/helix/users", {
+        headers: { "Authorization": `Bearer ${token}`, "Client-Id": clientId }
+      });
+      const json = await res.json();
+      if (!res.ok) return { error: json.message || "Twitch API error" };
+      const u = json.data?.[0];
+      if (!u) return { error: "No Twitch user returned" };
+      return { login: u.login, displayName: u.display_name, avatar: u.profile_image_url };
+    }
+
+    function openTwitchPopup(clientId, redirectUri) {
+      const p = new URLSearchParams({
+        client_id: clientId,
+        redirect_uri: redirectUri,
+        response_type: "token",
+        scope: "user:read:email",
+        force_verify: "true"
+      });
+      return window.open(
+        `https://id.twitch.tv/oauth2/authorize?${p}`,
+        "tw_auth",
+        "width=520,height=680,scrollbars=yes"
+      );
+    }
+
+    function timeAgo(ts) {
+      if (!ts) return "never";
+      const d = Date.now() - ts;
+      if (d < 60000) return "just now";
+      if (d < 3600000) return `${Math.floor(d/60000)}m ago`;
+      if (d < 86400000) return `${Math.floor(d/3600000)}h ago`;
+      return `${Math.floor(d/86400000)}d ago`;
+    }
+
+    const LS = {
+      get: (key) => { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } },
+      set: (key, val) => { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} },
+    };
+
+
+
+    const TwitchIcon = ({ size=16 }) => (
+      <svg width={size} height={size} viewBox="0 0 24 28" fill="currentColor" style={{flexShrink:0}}>
+        <path d="M2.149 0L0 6.5v19.5H6.5V28H11l2.5-2h4.5L23 21V0H2.149zM20.5 19.5L17 23h-5.5L9 25v-2.5H3.5V2.5h17v17zM13 7H11v6h2V7zm5 0h-2v6h2V7z"/>
+      </svg>
+    );
+
+    // Official Discord "clyde" shape
+    const DiscordIcon = ({ size=18 }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" style={{flexShrink:0}}>
+        <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+      </svg>
+    );
+
+    const ShareIcon = ({ size=15 }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+        <polyline points="16 6 12 2 8 6"/>
+        <line x1="12" y1="2" x2="12" y2="15"/>
+      </svg>
+    );
+
+    const FlagIcon = ({ size=11 }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" style={{flexShrink:0}}>
+        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+        <line x1="4" y1="22" x2="4" y2="15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    );
+    const HeartIcon = ({ size=16 }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" style={{flexShrink:0}}>
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+      </svg>
+    );
+
+    // ── Share image generator — Instagram story (1080×1920) ──────────────
+    function drawCrown(ctx, cx, cy, w) {
+      const h = w * 0.7;
+      const lx = cx - w/2, rx = cx + w/2;
+      const ltx = cx - w*0.46, rtx = cx + w*0.46;
+      const lvy = cy - h*0.28, rvy = cy - h*0.28;
+      const ltpy = cy - h*0.56, rtpy = cy - h*0.56, cty = cy - h*0.82;
+      ctx.beginPath();
+      ctx.moveTo(ltx, ltpy); ctx.lineTo(cx - w*0.24, lvy);
+      ctx.lineTo(cx, cty); ctx.lineTo(cx + w*0.24, rvy);
+      ctx.lineTo(rtx, rtpy); ctx.lineTo(rx, cy); ctx.lineTo(lx, cy);
+      ctx.closePath();
+      ctx.fillStyle = '#ff4655'; ctx.fill();
+      ctx.fillStyle = '#cc1e2a';
+      ctx.fillRect(lx, cy - h*0.1, w, h*0.12);
+      [[ltx, ltpy],[cx, cty],[rtx, rtpy]].forEach(([jx,jy]) => {
+        ctx.beginPath(); ctx.arc(jx, jy, w*0.042, 0, Math.PI*2);
+        ctx.fillStyle = '#ff9aaa'; ctx.fill();
+      });
+    }
+
+    function generateShareImage(s, pos) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1080; canvas.height = 1920;
+      const ctx = canvas.getContext('2d');
+      const pal = getRankPalette(s.rank?.tier);
+      const posColor = pos === 1 ? '#FFD700' : pos === 2 ? '#C0C0C0' : pos === 3 ? '#CD7F32' : '#ffffff';
+
+      // Background gradient
+      const bg = ctx.createLinearGradient(0, 0, 0, 1920);
+      bg.addColorStop(0, '#0e0e1a'); bg.addColorStop(1, '#080810');
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, 1080, 1920);
+
+      // Subtle diagonal grid lines
+      ctx.strokeStyle = 'rgba(255,70,85,0.04)'; ctx.lineWidth = 1;
+      for (let i = -1920; i < 2200; i += 80) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + 1920, 1920); ctx.stroke();
+      }
+
+      // Top red bar
+      ctx.fillStyle = '#ff4655'; ctx.fillRect(0, 0, 1080, 10);
+
+      // Crown logo at top
+      drawCrown(ctx, 540, 280, 260);
+
+      // TOPFRAGGED.COM below crown
+      ctx.font = `bold 80px 'Rajdhani', Arial`;
+      ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center';
+      ctx.fillText('TOPFRAGGED', 540, 370);
+      ctx.fillStyle = '#ff4655';
+      ctx.fillText('.COM', 540, 455);
+
+      // Divider
+      ctx.strokeStyle = '#1e1e2c'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(140, 490); ctx.lineTo(940, 490); ctx.stroke();
+
+      // Subtitle
+      ctx.font = `500 32px 'JetBrains Mono', monospace`;
+      ctx.fillStyle = '#333';
+      ctx.fillText('TWITCH STREAMER VALORANT LEADERBOARDS', 540, 540);
+
+      // Large faded position watermark
+      ctx.font = `bold 500px 'Rajdhani', Arial`;
+      ctx.fillStyle = `rgba(${pos<=3?'255,200,0':'145,71,255'},0.035)`;
+      ctx.fillText(`#${pos}`, 540, 1150);
+
+      // Position number — large
+      ctx.font = `bold 340px 'Rajdhani', Arial`;
+      ctx.fillStyle = posColor;
+      ctx.shadowColor = posColor; ctx.shadowBlur = 40;
+      ctx.fillText(`#${pos}`, 540, 820);
+      ctx.shadowBlur = 0;
+
+      // "ON THE LEADERBOARD" label
+      ctx.font = `600 52px 'Rajdhani', Arial`;
+      ctx.fillStyle = '#555';
+      ctx.fillText('ON THE LEADERBOARD', 540, 900);
+
+      // Rank badge background
+      ctx.shadowBlur = 0;
+      const bx = 190, by = 960, bw = 700, bh = 130, br = 6;
+      ctx.beginPath();
+      ctx.moveTo(bx+br,by); ctx.lineTo(bx+bw-br,by);
+      ctx.quadraticCurveTo(bx+bw,by,bx+bw,by+br);
+      ctx.lineTo(bx+bw,by+bh-br);
+      ctx.quadraticCurveTo(bx+bw,by+bh,bx+bw-br,by+bh);
+      ctx.lineTo(bx+br,by+bh); ctx.quadraticCurveTo(bx,by+bh,bx,by+bh-br);
+      ctx.lineTo(bx,by+br); ctx.quadraticCurveTo(bx,by,bx+br,by);
+      ctx.closePath();
+      ctx.fillStyle = pal.bg; ctx.fill();
+      ctx.strokeStyle = pal.border; ctx.lineWidth = 3; ctx.stroke();
+
+      // Rank dot
+      ctx.beginPath(); ctx.arc(265, 1025, 14, 0, Math.PI*2);
+      ctx.fillStyle = pal.text; ctx.fill();
+
+      // Rank tier name
+      ctx.font = `bold 72px 'Rajdhani', Arial`;
+      ctx.fillStyle = pal.text;
+      ctx.fillText(s.rank?.tier || 'Unranked', 540, 1052);
+
+      // RR
+      if (s.rank?.tier && s.rank.tier !== 'Unranked' && s.rank.tier !== 'Radiant') {
+        ctx.font = `bold 120px 'Rajdhani', Arial`;
+        ctx.fillStyle = pal.text;
+        ctx.shadowColor = pal.text; ctx.shadowBlur = 20;
+        ctx.fillText(`${s.rank.rr} RR`, 540, 1240);
+        ctx.shadowBlur = 0;
+
+        // RR progress bar
+        const bw2 = 680, bx2 = (1080-bw2)/2;
+        ctx.fillStyle = '#1e1e2c'; ctx.fillRect(bx2, 1270, bw2, 18);
+        const filled = ctx.createLinearGradient(bx2, 0, bx2+bw2, 0);
+        filled.addColorStop(0, pal.text); filled.addColorStop(1, pal.border);
+        ctx.fillStyle = filled;
+        ctx.fillRect(bx2, 1270, bw2 * Math.min(100, s.rank.rr) / 100, 18);
+      } else if (s.rank?.tier === 'Radiant') {
+        ctx.font = `bold 100px 'Rajdhani', Arial`;
+        ctx.fillStyle = '#ffe44d'; ctx.shadowColor = '#ffe44d'; ctx.shadowBlur = 30;
+        ctx.fillText('RADIANT', 540, 1230);
+        ctx.shadowBlur = 0;
+      }
+
+      // Twitch username
+      ctx.font = `bold 90px 'Rajdhani', Arial`;
+      ctx.fillStyle = '#9147ff'; ctx.shadowColor = '#9147ff'; ctx.shadowBlur = 20;
+      ctx.fillText(`@${s.twitch}`, 540, 1460);
+      ctx.shadowBlur = 0;
+
+      // Divider
+      ctx.strokeStyle = '#1e1e2c'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(140, 1540); ctx.lineTo(940, 1540); ctx.stroke();
+
+      // Bottom URL
+      ctx.font = `500 48px 'JetBrains Mono', monospace`;
+      ctx.fillStyle = '#2a2a3a';
+      ctx.fillText('topfragged.com', 540, 1820);
+
+      // Bottom red bar
+      ctx.fillStyle = '#ff4655'; ctx.fillRect(0, 1910, 1080, 10);
+
+      // Download
+      const a = document.createElement('a');
+      a.download = `topfragged-${s.twitch}.png`;
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    }
+
+    // ── Owner config ──────────────────────────────────────────
+    const TWITCH_CLIENT_ID       = "8lsid72vk4wqy2gwcy0qk3hzobpmip";
+    const HENRIK_API_KEY         = "HDEV-5e6c5c6b-b5fa-468c-84b1-9c277188f1c4";
+    const OWNER_PASSWORD_HASH    = "4bc2e0937d7a12dae5558a4e89acb91b6ee974f14c6d0395be2dc1426f402121";
+    // ─────────────────────────────────────────────────────────
+
+    function App() {
+      const [streamers, setStreamers]           = useState([]);
+      const [loaded, setLoaded]                 = useState(false);
+      const [search, setSearch]                 = useState("");
+      const [activeRegion, setActiveRegion]     = useState("all");
+      const [modal, setModal]                   = useState(false);
+      const [confirmDel, setConfirmDel]         = useState(null);
+      const [twitchUser, setTwitchUser]         = useState(null);
+      const [twConnecting, setTwConnecting]     = useState(false);
+      const [twErr, setTwErr]                   = useState("");
+      const [form, setForm]                     = useState({ twitch:"", name:"", tag:"", region:"na" });
+      const [formErr, setFormErr]               = useState("");
+      const [submitting, setSubmitting]         = useState(false);
+      const [autoRefreshing, setAutoRefreshing] = useState(false);
+      const [countdown, setCountdown]           = useState(null);
+      const [nextRefresh, setNextRefresh]       = useState(null);
+      const [currentUser, setCurrentUser]       = useState(() => LS.get('__tf_current_user'));
+      const [isOwner, setIsOwner]               = useState(false);
+      const [ownerClicks, setOwnerClicks]       = useState(0);
+      const [ownerModal, setOwnerModal]         = useState(false);
+      const [ownerPwInput, setOwnerPwInput]     = useState("");
+      const [ownerPwErr, setOwnerPwErr]         = useState(false);
+      const [bannedPopup, setBannedPopup]       = useState(false);
+      const [reportModal, setReportModal]       = useState(null);
+      const [reportReason, setReportReason]     = useState("");
+      const [reportDetails, setReportDetails]   = useState("");
+      const [reportImages, setReportImages]     = useState([]);
+      const [reportSubmitting, setReportSubmitting] = useState(false);
+      const [reportSent, setReportSent]         = useState(false);
+      const [lightboxImg, setLightboxImg]       = useState(null);
+      const [ownerPanel, setOwnerPanel]         = useState(false);
+      const [ownerPanelTab, setOwnerPanelTab]   = useState('reports');
+      const [ownerReports, setOwnerReports]     = useState([]);
+      const [ownerBans, setOwnerBans]           = useState([]);
+      const [banSearch, setBanSearch]           = useState("");
+      const [reportSearch, setReportSearch]     = useState("");
+      const streamersRef = useRef([]);
+      streamersRef.current = streamers;
+      const submittingRef = useRef(false);
+
+      const savedCid = TWITCH_CLIENT_ID;
+      const redirectUri = "https://topfragged.com/";
+
+      // ── On mount: handle Twitch redirect-back + subscribe to Firestore ────
+      useEffect(() => {
+        const hash = window.location.hash;
+        const pending = LS.get('__tf_tw_pending');
+        if (hash && hash.includes('access_token') && pending) {
+          LS.set('__tf_tw_pending', null);
+          try { history.replaceState(null, '', window.location.pathname); } catch(e) {}
+          const token = new URLSearchParams(hash.slice(1)).get('access_token');
+          if (token) {
+            setTwConnecting(true);
+            fetchTwitchUser(token, savedCid).then(async user => {
+              setTwConnecting(false);
+              if (user.error) { setTwErr("Couldn't verify Twitch: " + user.error); return; }
+              // Check if this user is banned
+              try {
+                const banDoc = await db.collection('bans').doc(user.login.toLowerCase()).get();
+                if (banDoc.exists) { setBannedPopup(true); return; }
+              } catch(e) {}
+              setTwitchUser(user);
+              setCurrentUser(user);
+              LS.set('__tf_current_user', user);
+              setForm(f => ({ ...f, twitch: user.login }));
+              setModal(true);
+            });
+          }
+        }
+
+        const unsub = db.collection('streamers').onSnapshot(snapshot => {
+          const data = snapshot.docs
+            .map(d => ({ ...d.data(), firestoreId: d.id, id: d.data().id || d.id }))
+            .filter(s => s.twitch);
+          setStreamers(data);
+          setLoaded(true);
+        }, () => setLoaded(true));
+
+        return () => unsub();
+      }, []);
+
+      // ── Subscribe to reports + bans when owner mode is active ─────────────
+      useEffect(() => {
+        if (!isOwner) return;
+        const unsubReports = db.collection('reports').orderBy('reportedAt','desc').onSnapshot(snap => {
+          setOwnerReports(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        }, () => {});
+        const unsubBans = db.collection('bans').orderBy('bannedAt','desc').onSnapshot(snap => {
+          setOwnerBans(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        }, () => {});
+        return () => { unsubReports(); unsubBans(); };
+      }, [isOwner]);
+
+      async function handleDeleteReport(reportId) {
+        try { await db.collection('reports').doc(reportId).delete(); } catch(e) {}
+      }
+
+      async function handleAcceptReport(report) {
+        try {
+          await db.collection('bans').doc(report.streamer.toLowerCase()).set({
+            twitch: report.streamer, bannedAt: Date.now(), reason: report.reason,
+          });
+          await db.collection('streamers').doc(report.streamer.toLowerCase()).delete().catch(()=>{});
+          await db.collection('reports').doc(report.id).delete();
+        } catch(e) {}
+      }
+
+      async function handleRevokeBan(ban) {
+        try { await db.collection('bans').doc(ban.id).delete(); } catch(e) {}
+      }
+
+      // ── Owner mode: click "STREAMER" in subtitle 5× to open password prompt ─
+      function handleStreamerClick() {
+        setOwnerClicks(n => {
+          const next = n + 1;
+          if (next >= 5) { setOwnerModal(true); return 0; }
+          return next;
+        });
+      }
+
+      async function handleOwnerLogin() {
+        try {
+          const enc = new TextEncoder();
+          const buf = await crypto.subtle.digest('SHA-256', enc.encode(ownerPwInput));
+          const hash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+          if (hash === OWNER_PASSWORD_HASH) {
+            setIsOwner(true); setOwnerModal(false); setOwnerPwInput(""); setOwnerPwErr(false);
+          } else { setOwnerPwErr(true); }
+        } catch(e) { setOwnerPwErr(true); }
+      }
+
+      async function handleAdminRemove(s) {
+        try {
+          const docId = s.firestoreId || s.twitch.toLowerCase();
+          await db.collection('streamers').doc(docId).delete();
+          await db.collection('streamers').doc(s.twitch.toLowerCase()).delete().catch(()=>{});
+        } catch(e) {}
+        setConfirmDel(null);
+      }
+
+      async function handleBan(s) {
+        try {
+          await db.collection('bans').doc(s.twitch.toLowerCase()).set({ twitch: s.twitch, bannedAt: Date.now() });
+          const docId = s.firestoreId || s.twitch.toLowerCase();
+          await db.collection('streamers').doc(docId).delete();
+          await db.collection('streamers').doc(s.twitch.toLowerCase()).delete().catch(()=>{});
+        } catch(e) {}
+        setConfirmDel(null);
+      }
+
+      useEffect(() => {
+        if (!nextRefresh) return;
+        const t = setInterval(() => setCountdown(Math.max(0, Math.round((nextRefresh - Date.now()) / 1000))), 1000);
+        return () => clearInterval(t);
+      }, [nextRefresh]);
+
+      useEffect(() => {
+        if (!loaded) return;
+        const iv = setInterval(() => refreshAll(streamersRef.current), 3 * 60 * 1000);
+        setNextRefresh(Date.now() + 3 * 60 * 1000);
+        return () => clearInterval(iv);
+      }, [loaded]);
+
+      async function refreshAll(list) {
+        if (!list?.length) return;
+        // Only refresh entries whose rank is stale (> 3 min old)
+        const stale = list.filter(s => !s.rank?.lastUpdated || Date.now() - s.rank.lastUpdated > 3 * 60 * 1000);
+        if (!stale.length) return;
+        setAutoRefreshing(true);
+        for (let i = 0; i < stale.length; i++) {
+          const s = stale[i];
+          const rank = await lookupRank(s.name, s.tag, s.region);
+          if (!rank.error) {
+            try { await db.collection('streamers').doc(s.twitch.toLowerCase()).update({ rank }); } catch(e) {}
+          }
+          if (i < stale.length - 1) await new Promise(r => setTimeout(r, 2200));
+        }
+        setAutoRefreshing(false);
+        setNextRefresh(Date.now() + 3 * 60 * 1000);
+      }
+
+      function openRegister() {
+        setTwitchUser(null); setTwErr(""); setFormErr("");
+        setForm({ twitch:"", name:"", tag:"", region: activeRegion !== "all" ? activeRegion : "na" });
+        setModal(true);
+      }
+
+      // ── Twitch login: redirect flow — no popup, works everywhere ─────────
+      function handleConnectTwitch() {
+        if (!savedCid) return;
+        LS.set('__tf_tw_pending', true);
+        const p = new URLSearchParams({
+          client_id:     savedCid,
+          redirect_uri:  redirectUri,
+          response_type: "token",
+          scope:         "user:read:email",
+          force_verify:  "true",
+        });
+        window.location.href = `https://id.twitch.tv/oauth2/authorize?${p}`;
+      }
+
+      async function handleSubmit() {
+        setFormErr("");
+        const { twitch, name, tag, region } = form;
+        if (!twitch.trim() || !name.trim() || !tag.trim()) { setFormErr("All fields are required."); return; }
+        const twitchKey = twitch.trim().toLowerCase();
+        if (!submittingRef.current && streamers.find(s => s.twitch.toLowerCase() === twitchKey)) {
+          setModal(false); setTwitchUser(null); return;
+        }
+        setSubmitting(true);
+        submittingRef.current = true;
+        // Look up rank first
+        const rank = await lookupRank(name.trim(), tag.trim(), region).catch(() => null);
+        const finalRank = (rank && !rank.error) ? rank : { tier:"Unranked", rr:0, elo:0, lastUpdated:Date.now() };
+        // Write to Firestore
+        const writeErr = await db.collection('streamers').doc(twitchKey).set({
+          id: twitchKey, twitch: twitch.trim(), name: name.trim(),
+          tag: tag.trim(), region, rank: finalRank, avatar: twitchUser?.avatar || null,
+        }).then(() => null).catch(e => e);
+        if (writeErr) {
+          setFormErr("Couldn't save — check your connection and try again.");
+          setSubmitting(false);
+          submittingRef.current = false;
+          return;
+        }
+        // Close immediately — don't let anything stop this
+        submittingRef.current = false;
+        setSubmitting(false);
+        setModal(false);
+        setTwitchUser(null);
+        setForm({ twitch:"", name:"", tag:"", region:"na" });
+      }
+
+      async function handleRemove(s) {
+        try {
+          // Use the actual Firestore doc ID for a guaranteed delete
+          const docId = s.firestoreId || s.twitch.toLowerCase();
+          await db.collection('streamers').doc(docId).delete();
+          // Also clear by twitch name in case doc IDs ever differ
+          await db.collection('streamers').doc(s.twitch.toLowerCase()).delete().catch(() => {});
+        } catch(e) {}
+        // Clear their saved identity so they start fresh if they want to re-add
+        setCurrentUser(null);
+        setTwitchUser(null);
+        LS.set('__tf_current_user', null);
+        setConfirmDel(null);
+      }
+
+      async function handleReport() {
+        if (!reportReason) return;
+        setReportSubmitting(true);
+        try {
+          await db.collection('reports').add({
+            streamer: reportModal.twitch,
+            riotId: `${reportModal.name}#${reportModal.tag}`,
+            reason: reportReason,
+            details: reportDetails,
+            images: reportImages,
+            reportedAt: Date.now(),
+          });
+        } catch(e) {}
+        setReportSubmitting(false);
+        setReportSent(true);
+        setTimeout(() => { setReportModal(null); setReportReason(""); setReportDetails(""); setReportImages([]); setReportSent(false); }, 2200);
+      }
+
+      function handleImageFiles(files) {
+        const tooBig = Array.from(files).filter(f => f.type.startsWith('image/') && f.size > 100 * 1024);
+        if (tooBig.length) {
+          alert(`Image${tooBig.length > 1 ? 's' : ''} must be under 100 KB. Try screenshotting a smaller area or compressing first.\n\nRejected: ${tooBig.map(f => f.name).join(', ')}`);
+        }
+        const allowed = Array.from(files).filter(f => f.type.startsWith('image/') && f.size <= 100 * 1024).slice(0, 2 - reportImages.length);
+        allowed.forEach(file => {
+          const reader = new FileReader();
+          reader.onload = e => setReportImages(imgs => imgs.length < 2 ? [...imgs, e.target.result] : imgs);
+          reader.readAsDataURL(file);
+        });
+      }
+
+      async function handleRefresh(id) {
+        const s = streamers.find(x => x.id === id);
+        if (!s) return;
+        const rank = await lookupRank(s.name, s.tag, s.region);
+        if (!rank.error) {
+          try { await db.collection('streamers').doc(s.twitch.toLowerCase()).update({ rank }); } catch(e) {}
+        }
+      }
+
+      const globalSorted   = [...streamers].sort((a, b) => sortKey(b) - sortKey(a));
+      const regionFiltered = activeRegion === "all" ? globalSorted : globalSorted.filter(s => s.region === activeRegion);
+      const q              = search.trim().toLowerCase();
+      const displayed      = q ? regionFiltered.filter(s => s.twitch.toLowerCase().includes(q) || `${s.name}#${s.tag}`.toLowerCase().includes(q)) : regionFiltered;
+      const regionSorted   = activeRegion === "all" ? globalSorted : globalSorted.filter(s => s.region === activeRegion);
+      const regionPos      = id => regionSorted.findIndex(s => s.id === id) + 1;
+      const countFor       = (r) => r === "all" ? streamers.length : streamers.filter(s => s.region === r).length;
+      const topPlayer      = regionSorted[0];
+
+      return (
+        <div className="vr">
+
+          {/* ── Header ── */}
+          <div className="vr-header">
+            <div className="vr-brand">
+              <div className="vr-brand-text">
+                <div className="vr-brand-name" style={{userSelect:"none"}}>TOPFRAGGED<span>.COM</span></div>
+                <div className="vr-brand-sub">
+                  <span className="tw">TWITCH</span> <span onClick={handleStreamerClick} style={{cursor:"default",userSelect:"none"}}>STREAMER</span> <span className="vl">VALORANT</span> LEADERBOARDS
+                </div>
+              </div>
+            </div>
+            {isOwner && <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:"#ff4655",letterSpacing:".12em",border:"1px solid #ff4655",padding:"2px 7px"}}>OWNER</span>}
+            {isOwner && (
+              <div style={{display:"flex",gap:6}}>
+                <button onClick={()=>{setOwnerPanel(true);setOwnerPanelTab('reports');}} style={{background:"#1a0e10",border:"1px solid #3a1820",color:"#ff4655",padding:"5px 12px",fontFamily:"'JetBrains Mono',monospace",fontSize:10,letterSpacing:".1em",cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>
+                  REPORTS {ownerReports.length > 0 && <span style={{background:"#ff4655",color:"#fff",borderRadius:"50%",width:16,height:16,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:9}}>{ownerReports.length}</span>}
+                </button>
+                <button onClick={()=>{setOwnerPanel(true);setOwnerPanelTab('banned');}} style={{background:"#0e0e1a",border:"1px solid #252535",color:"#555",padding:"5px 12px",fontFamily:"'JetBrains Mono',monospace",fontSize:10,letterSpacing:".1em",cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>
+                  BANNED {ownerBans.length > 0 && <span style={{background:"#333",color:"#aaa",borderRadius:"50%",width:16,height:16,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:9}}>{ownerBans.length}</span>}
+                </button>
+              </div>
+            )}
+            <div className="vr-spacer" />
+            <div className="vr-search-wrap">
+              <span className="vr-search-icon">⌕</span>
+              <input className="vr-search" placeholder="Search streamers…" value={search} onChange={e=>setSearch(e.target.value)} />
+            </div>
+            {currentUser && streamers.find(s => s.twitch.toLowerCase() === currentUser.login.toLowerCase())
+              ? <div style={{display:"flex",alignItems:"center",gap:8,background:"#0e0918",border:"1px solid #3a2a5a",padding:"7px 14px"}}>
+                  {currentUser.avatar && <img src={currentUser.avatar} style={{width:22,height:22,borderRadius:"50%"}} alt=""/>}
+                  <span style={{fontFamily:"'Rajdhani',sans-serif",fontWeight:700,fontSize:13,color:"#9147ff",letterSpacing:".04em"}}>{currentUser.login}</span>
+                  <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:"#40df90"}}>✓ on leaderboard</span>
+                </div>
+              : <button className="btn-twitch" onClick={openRegister}>
+                  <TwitchIcon size={14} /> Login with Twitch
+                </button>
+            }
+          </div>
+
+          {/* ── Stats bar ── */}
+          <div className="vr-stats-bar">
+            <div className="vr-stat"><span>{streamers.length}</span> streamers tracked</div>
+            {topPlayer && <>
+              <div className="vr-stat" style={{color:"#1e1e2c"}}>·</div>
+              <div className="vr-stat">
+                {activeRegion !== "all" ? <span style={{color:"#555"}}>{activeRegion.toUpperCase()} </span> : ""}
+                Top: <span style={{color:getRankPalette(topPlayer.rank?.tier).text}}>{topPlayer.rank?.tier||"Unranked"}</span>
+                {" "}<span style={{color:"#9147ff"}}>@{topPlayer.twitch}</span>
+                {topPlayer.rank?.elo > 0 && <span style={{color:"#333"}}> · {topPlayer.rank.elo} ELO</span>}
+              </div>
+            </>}
+            <div style={{flex:1}} />
+            {autoRefreshing
+              ? <div className="vr-stat" style={{display:"flex",alignItems:"center",gap:5}}>
+                  <span className="spin" style={{color:"#ff4655"}}>↻</span>
+                  <span style={{color:"#ff4655"}}>Refreshing…</span>
+                </div>
+              : countdown !== null && streamers.length > 0
+                ? <div className="vr-stat">next refresh <span>{Math.floor(countdown/60)}:{String(countdown%60).padStart(2,"0")}</span></div>
+                : null
+            }
+          </div>
+
+          {/* ── Region Tabs ── */}
+          <div className="region-tabs">
+            {REGION_TABS.map(tab => (
+              <button key={tab.value} className={`region-tab${activeRegion === tab.value ? " active" : ""}`} onClick={() => setActiveRegion(tab.value)}>
+                {tab.label}<span className="count">({countFor(tab.value)})</span>
+              </button>
+            ))}
+            <span style={{alignSelf:"center",marginLeft:6,fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:"#2a2a3a",letterSpacing:".1em",whiteSpace:"nowrap"}}>more servers coming soon</span>
+          </div>
+
+          {/* ── Table ── */}
+          <div className="vr-table-head">
+            <div className="vr-th">#</div>
+            <div className="vr-th">STREAMER</div>
+            <div className="vr-th">RANK</div>
+            <div className="vr-th">RR</div>
+            <div className="vr-th">REGION</div>
+            <div className="vr-th"></div>
+          </div>
+          <div className="vr-rows">
+            {!loaded ? (
+              <div style={{textAlign:"center",padding:50,color:"#333",fontFamily:"JetBrains Mono,monospace",fontSize:12}}>Loading…</div>
+            ) : displayed.length === 0 ? (
+              <div className="vr-empty">
+                <div className="vr-empty-title">No streamers in {activeRegion === "all" ? "this search" : activeRegion.toUpperCase()}</div>
+                <div className="vr-empty-sub">{q ? `No results for "${q}"` : "No streamers have registered for this region yet."}</div>
+              </div>
+            ) : displayed.map(s => {
+              const pal        = getRankPalette(s.rank?.tier);
+              const pos        = regionPos(s.id);
+              const isTop3     = pos <= 3;
+              const isRadiant  = s.rank?.tier === "Radiant";
+              const isUnranked = !s.rank?.tier || s.rank.tier === "Unranked";
+              return (
+                <div key={s.id}>
+                  <div className="vr-row fade-in">
+                    <div className={`vr-pos${isTop3?" top":""}`} style={isTop3?{color:TOP3[pos-1]}:{}}>{pos}</div>
+                    <div className="vr-streamer">
+                      {s.avatar
+                        ? <img src={s.avatar} alt="" className="vr-avatar" />
+                        : <div className="vr-avatar-ph">{s.twitch.slice(0,2).toUpperCase()}</div>
+                      }
+                      <div>
+                        <a className="vr-twitch-link" href={`https://twitch.tv/${s.twitch}`} target="_blank" rel="noopener noreferrer">{s.twitch}</a>
+                        <a className="vr-riot-link" href={`https://tracker.gg/valorant/profile/riot/${encodeURIComponent(s.name)}%23${s.tag}/overview`} target="_blank" rel="noopener noreferrer">{s.name}#{s.tag}</a>
+                      </div>
+                    </div>
+                    <div className="vr-rank-col">
+                      <span className="vr-badge" style={{background:pal.bg,color:pal.text,borderColor:pal.border}}>
+                        <span className="vr-dot" style={{background:pal.text}} />
+                        {s.rank?.tier || "Unranked"}
+                      </span>
+                    </div>
+                    <div className="vr-elo-col">
+                      {isUnranked ? (
+                        <div className="vr-elo-val" style={{color:"#444"}}>—</div>
+                      ) : (
+                        <>
+                          {isRadiant ? (
+                            <div className="vr-elo-val" style={{color:pal.text}}>RADIANT</div>
+                          ) : (
+                            <>
+                              <div className="vr-elo-val" style={{color:pal.text}}>{s.rank.rr} RR</div>
+                              <div className="vr-rr-track">
+                                <div className="vr-rr-fill" style={{width:`${Math.min(100,s.rank.rr)}%`,background:pal.text}}/>
+                              </div>
+                            </>
+                          )}
+                          <div className="vr-time">{timeAgo(s.rank?.lastUpdated)}</div>
+                        </>
+                      )}
+                    </div>
+                    <div className="vr-region">{s.region}</div>
+                    <div className="vr-actions">
+                      <button className="vr-icon-btn" title="Report" onClick={()=>{setReportModal(s);setReportReason("");setReportDetails("");setReportSent(false);}} style={{color:"#2a2a3a",fontSize:11}}>
+                        <FlagIcon size={11}/>
+                      </button>
+                      <button className="vr-icon-btn" title="Refresh rank" onClick={()=>handleRefresh(s.id)}>↻</button>
+                      {currentUser && s.twitch.toLowerCase() === currentUser.login.toLowerCase() && (
+                        <>
+                          <button className="vr-icon-btn" title="Share your rank" onClick={()=>generateShareImage(s, pos)} style={{color:"#9147ff"}}>
+                            <ShareIcon size={14}/>
+                          </button>
+                          <button className="vr-icon-btn" title="Remove" onClick={()=>setConfirmDel(confirmDel===s.id?null:s.id)}>✕</button>
+                        </>
+                      )}
+                      {isOwner && !(currentUser && s.twitch.toLowerCase() === currentUser.login.toLowerCase()) && (
+                        <>
+                          <button className="vr-icon-btn" title="Remove (owner)" style={{color:"#ff4655"}} onClick={()=>setConfirmDel(confirmDel===s.id?null:s.id)}>✕</button>
+                          <button className="vr-icon-btn" title="Ban user" style={{color:"#ff4655"}} onClick={()=>setConfirmDel('ban-'+s.id)}>🚫</button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {confirmDel === s.id && currentUser && s.twitch.toLowerCase() === currentUser.login.toLowerCase() && (
+                    <div className="vr-confirm">
+                      <div className="vr-confirm-text">Remove yourself from the leaderboard?</div>
+                      <button className="btn-cancel-sm" onClick={()=>setConfirmDel(null)}>Cancel</button>
+                      <button className="btn-del" onClick={()=>handleRemove(s)}>Remove</button>
+                    </div>
+                  )}
+                  {isOwner && confirmDel === s.id && !(currentUser && s.twitch.toLowerCase() === currentUser.login.toLowerCase()) && (
+                    <div className="vr-confirm">
+                      <div className="vr-confirm-text">Remove <strong style={{color:"#9147ff"}}>@{s.twitch}</strong> from the leaderboard?</div>
+                      <button className="btn-cancel-sm" onClick={()=>setConfirmDel(null)}>Cancel</button>
+                      <button className="btn-del" onClick={()=>handleAdminRemove(s)}>Remove</button>
+                    </div>
+                  )}
+                  {isOwner && confirmDel === 'ban-'+s.id && (
+                    <div className="vr-confirm" style={{borderColor:"#5a0e1a"}}>
+                      <div className="vr-confirm-text">Ban <strong style={{color:"#ff4655"}}>@{s.twitch}</strong>? They'll be removed and blocked from re-adding.</div>
+                      <button className="btn-cancel-sm" onClick={()=>setConfirmDel(null)}>Cancel</button>
+                      <button className="btn-del" onClick={()=>handleBan(s)}>Ban</button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {streamers.length > 0 && (
+            <div className="vr-footer">
+              <div className="vr-footer-note">
+                Ranks refresh every 3 minutes · Click Riot IDs to open tracker.gg
+              </div>
+            </div>
+          )}
+
+          {/* ── Social Footer ── */}
+          <div className="social-bar">
+            <a className="social-btn social-btn-discord" href="https://discord.gg/opp" target="_blank" rel="noopener noreferrer">
+              <DiscordIcon size={18} />
+              <span>DISCORD</span>
+            </a>
+            <a className="social-btn social-btn-twitch" href="https://twitch.tv/obsessing" target="_blank" rel="noopener noreferrer">
+              <TwitchIcon size={16} />
+              <span>TWITCH</span>
+            </a>
+            <a className="social-btn social-btn-donate" href="https://heavenly.gg/donate" target="_blank" rel="noopener noreferrer">
+              <HeartIcon size={16} />
+              <span>DONATE</span>
+            </a>
+          </div>
+
+          {/* ── Add Streamer Modal ── */}
+          {modal && (
+            <div className="overlay" onClick={e=>e.target===e.currentTarget&&setModal(false)}>
+              <div className="modal">
+                <div className="modal-head">
+                  <div className="modal-bar" style={{background:"#9147ff"}} />
+                  <div className="modal-title">Add Streamer</div>
+                </div>
+                <div className="modal-body">
+                  {twitchUser ? (
+                    <>
+                      <div className="tw-who">
+                        <img src={twitchUser.avatar} alt="" />
+                        <div>
+                          <div className="tw-who-name">{twitchUser.displayName}</div>
+                          <div className="tw-who-sub">twitch.tv/{twitchUser.login}</div>
+                        </div>
+                        <button className="tw-who-x" onClick={()=>{setTwitchUser(null);setForm(f=>({...f,twitch:""}));}}>✕</button>
+                      </div>
+                      <div className="vr-field-row">
+                        <div className="vr-field">
+                          <label className="vr-label">RIOT NAME</label>
+                          <input className="vr-input" placeholder="e.g. TenZ" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} />
+                        </div>
+                        <div className="vr-field">
+                          <label className="vr-label"># TAG</label>
+                          <input className="vr-input" placeholder="e.g. NA1" value={form.tag} onChange={e=>setForm(f=>({...f,tag:e.target.value}))} />
+                        </div>
+                      </div>
+                      <div className="vr-field">
+                        <label className="vr-label">REGION</label>
+                        <select className="vr-select" value={form.region} onChange={e=>setForm(f=>({...f,region:e.target.value}))}>
+                          {REGIONS.map(r=><option key={r.value} value={r.value}>{r.label}</option>)}
+                        </select>
+                      </div>
+                      {formErr && <div className="err-box">{formErr}</div>}
+                      <div className="modal-actions">
+                        <button className="btn-ghost" onClick={()=>setModal(false)}>Cancel</button>
+                        <button className="btn-red" style={{flex:1}} onClick={handleSubmit} disabled={submitting}>
+                          {submitting ? "Looking up rank…" : "Add to Leaderboard"}
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{background:"#0a0f0a",border:"1px solid #1a3a1a",padding:"12px 14px",marginBottom:16,display:"flex",gap:10,alignItems:"flex-start"}}>
+                        <span style={{fontSize:18,flexShrink:0,marginTop:1,color:"#ff6eb0"}}><HeartIcon size={18}/></span>
+                        <div>
+                          <div style={{fontFamily:"'Rajdhani',sans-serif",fontWeight:700,fontSize:13,color:"#40df90",letterSpacing:".05em",marginBottom:4}}>Safe &amp; secure — powered by Twitch</div>
+                          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:"#446644",lineHeight:1.7}}>
+                            You'll be redirected to <span style={{color:"#9147ff"}}>twitch.tv</span> to log in directly.<br/>
+                            We never see or store your password.<br/>
+                            We only read your public username and avatar.
+                          </div>
+                        </div>
+                      </div>
+                      <button className="btn-twitch" style={{width:"100%",justifyContent:"center",padding:"14px",fontSize:15}}
+                        onClick={handleConnectTwitch} disabled={twConnecting}>
+                        <TwitchIcon size={17} />
+                        {twConnecting ? "Verifying…" : "Continue with Twitch"}
+                      </button>
+                      {twErr && <div className="err-box" style={{marginTop:12}}>{twErr}</div>}
+                      <div style={{marginTop:12}}>
+                        <button className="btn-ghost" style={{width:"100%"}} onClick={()=>setModal(false)}>Cancel</button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Owner panel ── */}
+          {ownerPanel && (
+            <div className="owner-panel-overlay" onClick={e=>e.target===e.currentTarget&&setOwnerPanel(false)}>
+              <div className="owner-panel">
+
+                {/* Panel header */}
+                <div className="owner-panel-head">
+                  <div style={{width:3,height:20,background:"#ff4655",flexShrink:0}}/>
+                  <div style={{fontFamily:"'Rajdhani',sans-serif",fontWeight:700,fontSize:20,color:"#fff",flex:1,letterSpacing:".04em"}}>
+                    Owner Panel
+                    <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:"#ff4655",border:"1px solid #ff4655",padding:"2px 6px",marginLeft:10,verticalAlign:"middle",letterSpacing:".1em"}}>OWNER</span>
+                  </div>
+                  <button onClick={()=>setOwnerPanel(false)} style={{background:"transparent",border:"1px solid #252535",color:"#555",cursor:"pointer",fontSize:14,padding:"5px 10px",lineHeight:1,fontFamily:"'JetBrains Mono',monospace",transition:"color .15s,border-color .15s"}}
+                    onMouseEnter={e=>{e.currentTarget.style.color="#ff4655";e.currentTarget.style.borderColor="#ff4655";}}
+                    onMouseLeave={e=>{e.currentTarget.style.color="#555";e.currentTarget.style.borderColor="#252535";}}>✕</button>
+                </div>
+
+                {/* Tabs */}
+                <div className="owner-panel-tabs">
+                  {[
+                    ['reports','📋 REPORTS', ownerReports.length],
+                    ['banned','🚫 BANNED', ownerBans.length]
+                  ].map(([tab,label,count])=>(
+                    <button key={tab} className={`owner-panel-tab${ownerPanelTab===tab?" active":""}`} onClick={()=>setOwnerPanelTab(tab)}>
+                      {label}
+                      {count>0 && <span className="badge-count" style={{background:ownerPanelTab===tab?"#ff4655":"#252535",color:ownerPanelTab===tab?"#fff":"#666"}}>{count}</span>}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Panel body */}
+                <div className="owner-panel-body">
+
+                  {/* ── Reports tab ── */}
+                  {ownerPanelTab==='reports' && (
+                    ownerReports.length === 0
+                      ? <div className="panel-empty">✓ No pending reports</div>
+                      : <>
+                          <div className="ban-search-wrap">
+                            <span className="ban-search-icon">⌕</span>
+                            <input className="ban-search" placeholder="Search reported users…" value={reportSearch} onChange={e=>setReportSearch(e.target.value)} />
+                          </div>
+                          {ownerReports.filter(r=>!reportSearch||r.streamer?.toLowerCase().includes(reportSearch.toLowerCase())).length === 0
+                            ? <div className="panel-empty">No results for "{reportSearch}"</div>
+                            : <>
+                                <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:"#333",letterSpacing:".08em",marginBottom:14}}>
+                                  {ownerReports.filter(r=>!reportSearch||r.streamer?.toLowerCase().includes(reportSearch.toLowerCase())).length} REPORT{ownerReports.filter(r=>!reportSearch||r.streamer?.toLowerCase().includes(reportSearch.toLowerCase())).length!==1?"S":""}
+                                </div>
+                                {ownerReports.filter(r=>!reportSearch||r.streamer?.toLowerCase().includes(reportSearch.toLowerCase())).map(r => (
+                            <div key={r.id} className="report-card">
+                              <div>
+                                <span className="report-streamer">@{r.streamer}</span>
+                                <span className="report-riot">{r.riotId}</span>
+                              </div>
+                              <div>
+                                <span className="report-reason">
+                                  {r.reason==='fake_account'?"FAKE RIOT ACCOUNT":r.reason==='wrong_rank'?"WRONG RANK / BOOSTED":r.reason==='impersonation'?"IMPERSONATION":"OTHER"}
+                                </span>
+                              </div>
+                              {r.details && <div className="report-details">"{r.details}"</div>}
+                              {r.images && r.images.length > 0 && (
+                                <div style={{marginTop:10}}>
+                                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:"#333",letterSpacing:".08em",marginBottom:6}}>PROOF IMAGES ({r.images.length})</div>
+                                  <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                                    {r.images.map((src,i)=>(
+                                      <img
+                                        key={i} src={src} alt={`proof ${i+1}`}
+                                        onClick={()=>setLightboxImg(src)}
+                                        style={{width:90,height:68,objectFit:"cover",border:"1px solid #252535",cursor:"pointer",transition:"border-color .15s"}}
+                                        onMouseEnter={e=>e.currentTarget.style.borderColor="#9147ff"}
+                                        onMouseLeave={e=>e.currentTarget.style.borderColor="#252535"}
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              <div className="report-time">{r.reportedAt ? new Date(r.reportedAt).toLocaleString() : ""}</div>
+                              <div className="report-actions">
+                                <button className="btn-dismiss" onClick={()=>handleDeleteReport(r.id)}>Dismiss</button>
+                                <button className="btn-ban-user" onClick={()=>handleAcceptReport(r)}>🚫 Ban @{r.streamer}</button>
+                              </div>
+                            </div>
+                          ))}
+                              </>
+                          }
+                        </>
+                  )}
+
+                  {/* ── Banned tab ── */}
+                  {ownerPanelTab==='banned' && (
+                    <>
+                      <div className="ban-search-wrap">
+                        <span className="ban-search-icon">⌕</span>
+                        <input className="ban-search" placeholder="Search banned users…" value={banSearch} onChange={e=>setBanSearch(e.target.value)} />
+                      </div>
+                      {ownerBans.filter(b=>!banSearch||b.twitch?.toLowerCase().includes(banSearch.toLowerCase())).length === 0
+                        ? <div className="panel-empty">{ownerBans.length===0?"No banned users":"No results for \""+banSearch+"\""}</div>
+                        : <>
+                            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:"#333",letterSpacing:".08em",marginBottom:14}}>
+                              {ownerBans.filter(b=>!banSearch||b.twitch?.toLowerCase().includes(banSearch.toLowerCase())).length} BANNED USER{ownerBans.filter(b=>!banSearch||b.twitch?.toLowerCase().includes(banSearch.toLowerCase())).length!==1?"S":""}
+                            </div>
+                            {ownerBans.filter(b=>!banSearch||b.twitch?.toLowerCase().includes(banSearch.toLowerCase())).map(b=>(
+                              <div key={b.id} className="ban-card">
+                                <div style={{flex:1}}>
+                                  <div className="ban-name">@{b.twitch}</div>
+                                  {b.reason && <div className="ban-reason">
+                                    {b.reason==='fake_account'?"Fake Riot account":b.reason==='wrong_rank'?"Wrong rank / boosted":b.reason==='impersonation'?"Impersonating streamer":b.reason||"Manually banned"}
+                                  </div>}
+                                  <div className="ban-time">{b.bannedAt ? new Date(b.bannedAt).toLocaleString() : ""}</div>
+                                </div>
+                                <button className="btn-revoke" onClick={()=>handleRevokeBan(b)}>Revoke Ban</button>
+                              </div>
+                            ))}
+                          </>
+                      }
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Report modal ── */}
+          {reportModal && (
+            <div className="overlay" onClick={e=>e.target===e.currentTarget&&(setReportModal(null),setReportReason(""),setReportDetails(""),setReportImages([]),setReportSent(false))}>
+              <div className="modal" style={{width:440}}>
+                <div className="modal-head">
+                  <div className="modal-bar" style={{background:"#ff4655"}}/>
+                  <div className="modal-title">Report <span style={{color:"#9147ff"}}>@{reportModal.twitch}</span></div>
+                </div>
+                <div className="modal-body">
+                  {reportSent ? (
+                    <div className="ok-box" style={{justifyContent:"center",padding:"20px",flexDirection:"column",gap:6,textAlign:"center"}}>
+                      <div style={{fontSize:22,marginBottom:4}}>✓</div>
+                      <div>Report submitted — thank you.</div>
+                      <div style={{fontSize:10,color:"#2a4a38",marginTop:2}}>This will not appear on their profile.</div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="vr-field">
+                        <label className="vr-label">REASON</label>
+                        <select className="vr-select" value={reportReason} onChange={e=>setReportReason(e.target.value)}>
+                          <option value="">Select a reason…</option>
+                          <option value="fake_account">Fake Riot account</option>
+                          <option value="wrong_rank">Wrong rank / boosted stats</option>
+                          <option value="impersonation">Impersonating another streamer</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+                      <div className="vr-field">
+                        <label className="vr-label">NOTE <span style={{color:"#2a2a3a",fontWeight:400}}>— describe what's wrong</span></label>
+                        <textarea
+                          className="vr-input"
+                          placeholder="Explain the issue in detail…"
+                          value={reportDetails}
+                          onChange={e=>setReportDetails(e.target.value)}
+                          rows={4}
+                          style={{resize:"vertical",minHeight:90,lineHeight:1.6}}
+                        />
+                      </div>
+                      <div className="vr-field">
+                        <label className="vr-label">PROOF IMAGES <span style={{color:"#2a2a3a",fontWeight:400}}>— up to 2 screenshots</span></label>
+                        {/* Drop zone */}
+                        <div
+                          onClick={()=>document.getElementById('report-img-input').click()}
+                          onDragOver={e=>{e.preventDefault();e.currentTarget.style.borderColor="#9147ff";}}
+                          onDragLeave={e=>{e.currentTarget.style.borderColor="#252535";}}
+                          onDrop={e=>{e.preventDefault();e.currentTarget.style.borderColor="#252535";handleImageFiles(e.dataTransfer.files);}}
+                          style={{border:"1px dashed #252535",background:"#0a0a14",padding:"14px 12px",cursor:"pointer",textAlign:"center",transition:"border-color .15s",marginBottom:reportImages.length?10:0}}
+                        >
+                          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#333",lineHeight:1.7}}>
+                            {reportImages.length >= 2
+                              ? <span style={{color:"#555"}}>Max 2 images attached</span>
+                              : <><span style={{color:"#555"}}>Click or drag &amp; drop images</span><br/><span style={{fontSize:9,color:"#2a2a3a"}}>PNG, JPG, GIF · max 100 KB each · up to 2</span></>
+                            }
+                          </div>
+                          <input
+                            id="report-img-input" type="file" accept="image/*" multiple
+                            style={{display:"none"}}
+                            onChange={e=>handleImageFiles(e.target.files)}
+                          />
+                        </div>
+                        {/* Image previews */}
+                        {reportImages.length > 0 && (
+                          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                            {reportImages.map((src, i) => (
+                              <div key={i} style={{position:"relative",width:80,height:60,flexShrink:0}}>
+                                <img src={src} alt="" style={{width:80,height:60,objectFit:"cover",border:"1px solid #252535",display:"block",cursor:"pointer"}} onClick={()=>setLightboxImg(src)}/>
+                                <button
+                                  onClick={()=>setReportImages(imgs=>imgs.filter((_,j)=>j!==i))}
+                                  style={{position:"absolute",top:2,right:2,background:"rgba(0,0,0,.7)",border:"none",color:"#ff4655",fontSize:11,cursor:"pointer",lineHeight:1,padding:"1px 4px",fontWeight:700}}
+                                >✕</button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:"#2a2a3a",marginBottom:12,lineHeight:1.6}}>
+                        ⚠ Reports are reviewed privately and won't appear on the leaderboard.
+                      </div>
+                      <div className="modal-actions">
+                        <button className="btn-ghost" onClick={()=>{setReportModal(null);setReportReason("");setReportDetails("");setReportImages([]);}}>Cancel</button>
+                        <button className="btn-red" style={{flex:1}} onClick={handleReport} disabled={!reportReason||reportSubmitting}>
+                          {reportSubmitting ? "Submitting…" : "Submit Report"}
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Lightbox ── */}
+          {lightboxImg && (
+            <div className="overlay" style={{zIndex:400}} onClick={()=>setLightboxImg(null)}>
+              <div style={{position:"relative",maxWidth:"90vw",maxHeight:"90vh"}}>
+                <img src={lightboxImg} alt="" style={{maxWidth:"90vw",maxHeight:"85vh",objectFit:"contain",border:"1px solid #252535",display:"block"}}/>
+                <button onClick={()=>setLightboxImg(null)} style={{position:"absolute",top:8,right:8,background:"rgba(0,0,0,.8)",border:"1px solid #ff4655",color:"#ff4655",cursor:"pointer",fontSize:14,padding:"4px 10px",fontFamily:"'JetBrains Mono',monospace",fontWeight:700}}>✕</button>
+              </div>
+            </div>
+          )}
+
+          {/* ── Owner password modal ── */}
+          {ownerModal && (
+            <div className="overlay" onClick={e=>e.target===e.currentTarget&&(setOwnerModal(false),setOwnerPwInput(""),setOwnerPwErr(false))}>
+              <div className="modal" style={{width:340}}>
+                <div className="modal-head">
+                  <div className="modal-bar" style={{background:"#ff4655"}}/>
+                  <div className="modal-title">Owner Access</div>
+                </div>
+                <div className="modal-body">
+                  <input
+                    className="vr-input" type="password" placeholder="Enter password"
+                    value={ownerPwInput} onChange={e=>{setOwnerPwInput(e.target.value);setOwnerPwErr(false);}}
+                    onKeyDown={e=>e.key==='Enter'&&handleOwnerLogin()}
+                    autoFocus
+                  />
+                  {ownerPwErr && <div className="err-box" style={{marginTop:8}}>Incorrect password.</div>}
+                  <div className="modal-actions" style={{marginTop:14}}>
+                    <button className="btn-ghost" onClick={()=>{setOwnerModal(false);setOwnerPwInput("");setOwnerPwErr(false);}}>Cancel</button>
+                    <button className="btn-red" style={{flex:1}} onClick={handleOwnerLogin}>Unlock</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Ban popup ── */}
+          {bannedPopup && (
+            <div className="overlay">
+              <div className="modal" style={{width:400,border:"1px solid #5a0e1a"}}>
+                <div className="modal-head">
+                  <div className="modal-bar" style={{background:"#ff4655"}}/>
+                  <div className="modal-title" style={{color:"#ff4655"}}>Access Denied</div>
+                </div>
+                <div className="modal-body" style={{textAlign:"center",padding:"24px 28px 28px"}}>
+                  <div style={{fontSize:48,marginBottom:16}}>🚫</div>
+                  <div style={{fontFamily:"'Rajdhani',sans-serif",fontWeight:700,fontSize:20,color:"#fff",marginBottom:10}}>
+                    You have been banned from TOPFRAGGED.COM
+                  </div>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"#555",lineHeight:1.7,marginBottom:20}}>
+                    Your Twitch account has been restricted from this leaderboard. If you believe this is a mistake, reach out on Discord.
+                  </div>
+                  <a href="https://discord.gg/opp" target="_blank" rel="noopener noreferrer" className="btn-ghost" style={{display:"inline-flex",alignItems:"center",gap:8,textDecoration:"none"}}>
+                    <DiscordIcon size={14}/> Appeal on Discord
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
